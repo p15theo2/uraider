@@ -21,7 +21,6 @@ public class Climbing : PlayerStateBase<Climbing>
         player.MinimizeCollider();
         player.DisableCharControl();
         player.Anim.SetBool("isClimbing", true);
-        player.Velocity = Vector3.zero;
         player.Anim.applyRootMotion = true;
     }
 
@@ -31,6 +30,7 @@ public class Climbing : PlayerStateBase<Climbing>
         player.EnableCharControl();
         player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isClimbing", false);
+        player.Velocity = Vector3.zero;
         isOutCornering = false;
         isClimbingUp = false;
     }
@@ -40,7 +40,7 @@ public class Climbing : PlayerStateBase<Climbing>
         speed = Input.GetAxisRaw("Horizontal");
         player.Anim.SetFloat("Speed", speed);
 
-        Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.2f);
+        Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.18f);
         ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
         start = player.transform.position + (Vector3.up * 1.75f);
         ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 1.0f);

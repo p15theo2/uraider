@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Jumping : PlayerStateBase<Jumping>
 {
-    private const float GRAVITY = 10f;
     private const float GRAB_TIME = 0.8f;
 
     private Vector3 velocity;
@@ -24,8 +23,12 @@ public class Jumping : PlayerStateBase<Jumping>
         player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isJumping", true);
         velocity = player.Velocity;
-        ledgesDetected = ledgeDetector.FindLedgeJump(player.transform.position,
-            player.transform.forward, 4.0f, 3.4f);
+        if (ledgeDetector.FindLedgeJump(player.transform.position,
+            player.transform.forward, 4.0f, 3.4f))
+        {
+            if (ledgeDetector.GrabPoint.y - player.transform.position.y >= 2f)
+                ledgesDetected = true;
+        }
         player.Anim.SetBool("isGrabbing", ledgesDetected);
     }
 
@@ -47,9 +50,9 @@ public class Jumping : PlayerStateBase<Jumping>
             {
                 float zVel = curSpeed > 1.2f ? player.jumpZVel
                     : curSpeed > 0.1f ? player.sJumpZVel
-                    : 0.0f;
+                    : 0.1f;
                 float yVel = curSpeed > 1.2f ? player.jumpYVel
-                    : player.sJumpYVel;
+                    : player.jumpYVel;
 
                 velocity = player.transform.forward * zVel
                     + Vector3.up * yVel;
@@ -62,7 +65,7 @@ public class Jumping : PlayerStateBase<Jumping>
 
                 velocity = UMath.VelocityToReachPoint(player.transform.position,
                     grabPoint,
-                    GRAVITY,
+                    player.gravity,
                     GRAB_TIME);
 
                 timeTracker = Time.time;
@@ -72,7 +75,7 @@ public class Jumping : PlayerStateBase<Jumping>
         }
         else if (hasJumped)
         {
-            velocity.y -= GRAVITY * Time.deltaTime;
+            velocity.y -= player.gravity * Time.deltaTime;
 
             if (ledgesDetected && Time.time - timeTracker >= GRAB_TIME)
             {

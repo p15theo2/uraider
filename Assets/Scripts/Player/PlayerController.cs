@@ -10,10 +10,10 @@ public class PlayerController : MonoBehaviour
     public float runSpeed = 3.0f;
     public float walkSpeed = 1.2f;
     public float gravity = 14.0f;
-    public float jumpYVel = 5.715f;
-    public float jumpZVel = 5.143f;
-    public float sJumpYVel = 3.2f;
-    public float sJumpZVel = 2.6f;
+    public float jumpYVel = 5.8f;
+    public float jumpZVel = 4f;
+    public float sJumpYVel = 3f;
+    public float sJumpZVel = 2.4f;
 
     private IPlayerState currentState;
     private CharacterController charControl;
@@ -35,11 +35,16 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        isGrounded = charControl.isGrounded;
+        isGrounded = charControl.isGrounded && velocity.y <= 0.0f;
         anim.SetBool("isGrounded", isGrounded);
 
         currentState.Update(this);
 
+        AnimatorStateInfo animState = anim.GetCurrentAnimatorStateInfo(0);
+        float animTime = animState.normalizedTime <= 1.0f ? animState.normalizedTime
+            : animState.normalizedTime % (int)animState.normalizedTime;
+        anim.SetFloat("AnimTime", animTime);  // Used for determining certain transitions
+        
         if (charControl.enabled)
             charControl.Move(velocity * Time.deltaTime);
     }
