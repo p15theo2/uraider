@@ -18,22 +18,26 @@ public class Jumping : PlayerStateBase<Jumping>
 
     public override void OnEnter(PlayerController player)
     {
-        hasJumped = false;
-        ledgesDetected = false;
         player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isJumping", true);
+
         velocity = player.Velocity;
+        velocity.y = 0f;
+
         if (ledgeDetector.FindLedgeJump(player.transform.position,
-            player.transform.forward, 4.0f, 3.4f))
+            player.transform.forward, 4.4f, 3.4f))
         {
-            if (ledgeDetector.GrabPoint.y - player.transform.position.y >= 2f)
+            if (!Physics.Raycast(ledgeDetector.GrabPoint, Vector3.down, 2.0f))
                 ledgesDetected = true;
         }
+
         player.Anim.SetBool("isGrabbing", ledgesDetected);
     }
 
     public override void OnExit(PlayerController player)
     {
+        hasJumped = false;
+        ledgesDetected = false;
         player.Anim.SetBool("isJumping", false);
         player.Anim.SetBool("isGrabbing", false);
     }

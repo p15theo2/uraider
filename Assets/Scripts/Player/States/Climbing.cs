@@ -10,7 +10,6 @@ public class Climbing : PlayerStateBase<Climbing>
     private bool isOutCornering = false;
     private bool isInCornering = false;
     private bool isClimbingUp = false;
-    private bool isLettingGo = false;
     private float speed = 0f;
     private float grabForwardOffset = 0.1f;
     private float grabUpOffset = 2.1f; // 1.78
@@ -35,7 +34,6 @@ public class Climbing : PlayerStateBase<Climbing>
         isOutCornering = false;
         isInCornering = false;
         isClimbingUp = false;
-        isLettingGo = false;
     }
 
     public override void Update(PlayerController player)
@@ -84,7 +82,7 @@ public class Climbing : PlayerStateBase<Climbing>
         }
         else
         {
-            if (!isLettingGo && !isClimbingUp)
+            if (!isClimbingUp)
                 AdjustPosition(player);
         }
 

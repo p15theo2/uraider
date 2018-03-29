@@ -30,11 +30,22 @@ public class Locomotion : PlayerStateBase<Locomotion>
 
     public override void Update(PlayerController player)
     {
-        HandleMovement(player);
-        player.RotateToVelocity();
+        if (!player.Grounded && !isRootMotion)
+        {
+            player.State = InAir.Instance;
+            return;
+        }
+        else if (Input.GetMouseButtonDown(1))
+        {
+            player.State = Combat.Instance;
+            return;
+        }
+
+        player.MoveFree();
+        player.RotateToVelocityGround();
         
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
-        if (!waitingBool && animState.IsName("Locomotion") && isRootMotion)
+        if (!waitingBool && isRootMotion && animState.IsName("Locomotion"))
         {
             player.Anim.applyRootMotion = false;
             player.EnableCharControl();

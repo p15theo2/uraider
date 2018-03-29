@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public float rotationSpeed = 80.0f;
+    public float rotationSpeed = 120.0f;
     public float yMax = 80.0f;
     public float yMin = -45.0f;
     public float smoothing = 15.0f;
@@ -17,9 +17,11 @@ public class CameraController : MonoBehaviour
 
     private Transform pivot;
     private Camera cam;
+    private CameraState camState;
 
     private void Start()
     {
+        camState = CameraState.Grounded;
         cam = GetComponentInChildren<Camera>();
         pivot = cam.transform.parent;
     }
@@ -32,12 +34,17 @@ public class CameraController : MonoBehaviour
 
     private void HandleRotation()
     {
-        yRot += Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
+        if (camState == CameraState.Grounded)
+            yRot += Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
+        else
+            yRot = target.rotation.eulerAngles.y;
+
         xRot -= Input.GetAxis("Mouse Y") * rotationSpeed * Time.deltaTime; // Negative so mouse up = cam down
         xRot = Mathf.Clamp(xRot, yMin, yMax);
 
-        if (LAUTurning && Mathf.Abs(Input.GetAxis("Mouse X")) == 0f)
-            DoExtraRotation(ref yRot);
+        if (LAUTurning && camState == CameraState.Grounded 
+            && Mathf.Abs(Input.GetAxis("Mouse X")) == 0f)
+            DoExtraRotation();
 
         pivot.rotation = Quaternion.Slerp(pivot.rotation, Quaternion.Euler(xRot, yRot, 0.0f), smoothing * Time.deltaTime);
     }
@@ -47,8 +54,21 @@ public class CameraController : MonoBehaviour
         transform.position = target.position;
     }
 
-    private void DoExtraRotation(ref float yRot)
+    private void DoExtraRotation()
     {
         yRot += 1.0f * Input.GetAxis("Horizontal");
     }
+
+    public CameraState State
+    {
+        get { return camState; }
+        set { camState = value; }
+    }
+}
+
+// enum incase of future extensions
+public enum CameraState
+{
+    Grounded,
+    Combat
 }
