@@ -36,11 +36,19 @@ public class CameraController : MonoBehaviour
         xRot -= Input.GetAxis("Mouse Y") * rotationSpeed * Time.deltaTime; // Negative so mouse up = cam down
         xRot = Mathf.Clamp(xRot, yMin, yMax);
 
+        if (LAUTurning && Mathf.Abs(Input.GetAxis("Mouse X")) == 0f)
+            DoExtraRotation(ref yRot);
+
         pivot.rotation = Quaternion.Slerp(pivot.rotation, Quaternion.Euler(xRot, yRot, 0.0f), smoothing * Time.deltaTime);
     }
 
     private void HandleMovement()
     {
         transform.position = target.position;
+    }
+
+    private void DoExtraRotation(ref float yRot)
+    {
+        yRot += 1.0f * Input.GetAxis("Horizontal");
     }
 }

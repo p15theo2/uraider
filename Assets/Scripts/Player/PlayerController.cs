@@ -49,6 +49,15 @@ public class PlayerController : MonoBehaviour
             charControl.Move(velocity * Time.deltaTime);
     }
 
+    public void RotateToVelocity()
+    {
+        if (UMath.GetHorizontalMag(velocity) > 0.1f)
+        {
+            Quaternion target = Quaternion.Euler(0.0f, Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg, 0.0f);
+            transform.rotation = target;
+        }
+    }
+
     public void MinimizeCollider()
     {
         charControl.radius = 0f;

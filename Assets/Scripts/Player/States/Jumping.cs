@@ -12,7 +12,7 @@ public class Jumping : PlayerStateBase<Jumping>
     private bool ledgesDetected = false;
     private float timeTracker = 0.0f;
     private float grabForwardOffset = 0.1f;
-    private float grabUpOffset = 1.78f;
+    private float grabUpOffset = 2.1f; //1.78
 
     private LedgeDetector ledgeDetector = new LedgeDetector();
 

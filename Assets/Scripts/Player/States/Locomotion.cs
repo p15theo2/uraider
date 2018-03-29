@@ -31,7 +31,7 @@ public class Locomotion : PlayerStateBase<Locomotion>
     public override void Update(PlayerController player)
     {
         HandleMovement(player);
-        HandleRotation(player);
+        player.RotateToVelocity();
         
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
         if (!waitingBool && animState.IsName("Locomotion") && isRootMotion)
@@ -69,8 +69,8 @@ public class Locomotion : PlayerStateBase<Locomotion>
             Vector3 startU = player.transform.position + (Vector3.up * 1.7f);
             // Checks for ledge hop ups without grabbing
             isRootMotion = ledgeDetector.FindLedgeAtPoint(startL, player.transform.forward, 0.34f, 0.2f)
-                || ledgeDetector.FindLedgeAtPoint(startM, player.transform.forward, 0.34f, 0.2f)
-                || ledgeDetector.FindLedgeAtPoint(startU, player.transform.forward, 0.34f, 0.2f);
+                || ledgeDetector.FindLedgeAtPoint(startM, player.transform.forward, 0.4f, 0.2f)
+                || ledgeDetector.FindLedgeAtPoint(startU, player.transform.forward, 0.4f, 0.2f);
 
             if (isRootMotion)
             {
@@ -95,15 +95,6 @@ public class Locomotion : PlayerStateBase<Locomotion>
             player.State = Jumping.Instance;
     }
 
-    private void HandleRotation(PlayerController player)
-    {
-        if (velocity.magnitude > 0.1f)
-        {
-            Quaternion target = Quaternion.Euler(0.0f, Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg, 0.0f);
-            player.transform.rotation = target;
-        }
-    }
-
     private void HandleMovement(PlayerController player)
     {
         Vector3 camForward = Vector3.Scale(player.Cam.forward, new Vector3(1, 0, 1)).normalized;
@@ -116,12 +107,16 @@ public class Locomotion : PlayerStateBase<Locomotion>
             + camRight * Input.GetAxisRaw("Horizontal");
         if (targetVector.magnitude > 1.0f)
             targetVector = targetVector.normalized;
-        targetVector.y = -9.81f;  // Ensures charControl reports grounded correctly
+        targetVector.y = 0f;  
         targetVector *= moveSpeed;
+
+        velocity.y = 0f;
 
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * INTER_RATE);
         player.Anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
         player.Anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
+
+        velocity.y = -9.81f;
 
         player.Velocity = velocity;
     }

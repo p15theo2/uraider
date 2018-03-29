@@ -26,7 +26,7 @@ public class LedgeDetector
 
     public bool CanClimbUp(Vector3 start, Vector3 dir)
     {
-        if (FindLedgeJump(start + 1.8f * Vector3.up, dir, 1.0f, 1.8f))
+        if (FindLedgeJump(start + 2.12f * Vector3.up, dir, 1.0f, 1.8f))
         {
             return false;
         }

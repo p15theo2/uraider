@@ -10,9 +10,10 @@ public class Climbing : PlayerStateBase<Climbing>
     private bool isOutCornering = false;
     private bool isInCornering = false;
     private bool isClimbingUp = false;
-    private float speed;
+    private bool isLettingGo = false;
+    private float speed = 0f;
     private float grabForwardOffset = 0.1f;
-    private float grabUpOffset = 1.78f;
+    private float grabUpOffset = 2.1f; // 1.78
 
     private LedgeDetector ledgeDetector = new LedgeDetector();
 
@@ -32,7 +33,9 @@ public class Climbing : PlayerStateBase<Climbing>
         player.Anim.SetBool("isClimbing", false);
         player.Velocity = Vector3.zero;
         isOutCornering = false;
+        isInCornering = false;
         isClimbingUp = false;
+        isLettingGo = false;
     }
 
     public override void Update(PlayerController player)
@@ -81,12 +84,17 @@ public class Climbing : PlayerStateBase<Climbing>
         }
         else
         {
-            AdjustPosition(player);
+            if (!isLettingGo && !isClimbingUp)
+                AdjustPosition(player);
         }
 
         if (Input.GetKey(KeyCode.Space) && !isOutCornering && !isClimbingUp && speed == 0.0f
             && ledgeDetector.CanClimbUp(player.transform.position, player.transform.forward))
             ClimbUp(player);
+
+        if (Input.GetKey(KeyCode.LeftShift) && !isOutCornering && !isInCornering && !isClimbingUp
+            && speed == 0f)
+            LetGo(player);
     }
 
     private bool CheckForCorneringAt(PlayerController player, Vector3 dir, Vector3 perpDir)
@@ -99,6 +107,11 @@ public class Climbing : PlayerStateBase<Climbing>
     {
         player.Anim.SetTrigger("ClimbUp");
         isClimbingUp = true;
+    }
+
+    private void LetGo(PlayerController player)
+    {
+        player.State = InAir.Instance;
     }
 
     private void AdjustPosition(PlayerController player)
