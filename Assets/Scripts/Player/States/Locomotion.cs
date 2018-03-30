@@ -36,7 +36,7 @@ public class Locomotion : PlayerStateBase<Locomotion>
             return;
         }
 
-        player.MoveFree();
+        player.MoveGrounded();
         player.RotateToVelocityGround();
 
         HandleLedgeStepMotion(player);

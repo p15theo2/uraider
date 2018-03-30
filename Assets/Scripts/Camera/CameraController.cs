@@ -16,6 +16,7 @@ public class CameraController : MonoBehaviour
     private float xRot = 0.0f;
 
     private Transform pivot;
+    private Vector3 pivotOrigin;
     private Camera cam;
     private CameraState camState;
 
@@ -24,6 +25,7 @@ public class CameraController : MonoBehaviour
         camState = CameraState.Grounded;
         cam = GetComponentInChildren<Camera>();
         pivot = cam.transform.parent;
+        pivotOrigin = pivot.position;
     }
 
     private void LateUpdate()
@@ -57,6 +59,16 @@ public class CameraController : MonoBehaviour
     private void DoExtraRotation()
     {
         yRot += 1.0f * Input.GetAxis("Horizontal");
+    }
+
+    public void PivotOnTarget()
+    {
+        pivot.position = target.position;
+    }
+
+    public void PivotOnPivot()
+    {
+        pivot.position = pivotOrigin;
     }
 
     public CameraState State

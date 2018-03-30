@@ -37,7 +37,7 @@ public class Combat : PlayerStateBase<Combat>
 
         CheckForTargets(player);
 
-        player.MoveFree();
+        player.MoveGrounded();
 
         if (target != null)
         {
