@@ -17,6 +17,12 @@ public class PlayerController : MonoBehaviour
     public float interpolationRate = 8f;
 
     public CameraController camController;
+    public Transform rhAimPoint;
+    public Transform lhAimPoint;
+    public GameObject pistolLHand;
+    public GameObject pistolRHand;
+    public GameObject pistolLLeg;
+    public GameObject pistolRLeg;
 
     private IPlayerState currentState;
     private CharacterController charControl;
@@ -24,6 +30,8 @@ public class PlayerController : MonoBehaviour
     private Animator anim;
 
     private bool isGrounded = true;
+    private bool rhAim = false;
+    private bool lhAim = false;
     private Vector3 velocity;
 
     private void Start()
@@ -91,6 +99,34 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
     }
 
+    private void OnAnimatorIK(int layerIndex)
+    {
+        if (rhAim)
+        {
+            anim.SetIKPosition(AvatarIKGoal.RightHand, rhAimPoint.position);
+            anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 1.0f);
+            anim.SetIKRotation(AvatarIKGoal.RightHand, rhAimPoint.rotation);
+            anim.SetIKRotationWeight(AvatarIKGoal.RightHand, 1.0f);
+        }
+        else
+        {
+            anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0f);
+            anim.SetIKRotationWeight(AvatarIKGoal.RightHand, 0f);
+        }
+        if (lhAim)
+        {
+            anim.SetIKPosition(AvatarIKGoal.LeftHand, lhAimPoint.position);
+            anim.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1.0f);
+            anim.SetIKRotation(AvatarIKGoal.LeftHand, lhAimPoint.rotation);
+            anim.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1.0f);
+        }
+        else
+        {
+            anim.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
+            anim.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0f);
+        }
+    }
+
     public void MinimizeCollider()
     {
         charControl.radius = 0f;
@@ -140,6 +176,18 @@ public class PlayerController : MonoBehaviour
     public bool Grounded
     {
         get { return isGrounded; }
+    }
+
+    public bool RHAim
+    {
+        get { return rhAim; }
+        set { rhAim = value; }
+    }
+
+    public bool LHAim
+    {
+        get { return lhAim; }
+        set { lhAim = value; }
     }
 
     public Vector3 Velocity

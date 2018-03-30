@@ -54,6 +54,26 @@ public class LedgeDetector
         return false;
     }
 
+    public bool FindPlatformInfront(Vector3 start, Vector3 dir, float maxHeight, float depth = 0.76f)
+    {
+        RaycastHit vHit;
+        Vector3 vStart = start + (Vector3.up * 2f) + (dir * depth);
+        Debug.DrawRay(vStart, Vector3.down * (maxHeight - 0.01f), Color.red, 1f);
+        if (Physics.Raycast(vStart, Vector3.down, out vHit, (maxHeight - 0.01f)))
+        {
+            RaycastHit hHit;
+            start = new Vector3(start.x, vHit.point.y - 0.01f, start.z);
+            Debug.DrawRay(start, dir * depth, Color.red, 1f);
+            if (Physics.Raycast(start, dir, out hHit, depth))
+            {
+                grabPoint = new Vector3(hHit.point.x, vHit.point.y, hHit.point.z);
+                direction = -hHit.normal;
+                return true;
+            }
+        }
+        return false;
+    }
+
     public float MinDepth
     {
         get { return minDepth; }

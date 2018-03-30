@@ -8,12 +8,23 @@ public class Combat : PlayerStateBase<Combat>
 
     public override void OnEnter(PlayerController player)
     {
-        
+        player.Anim.SetBool("isCombat", true);
+        player.pistolLHand.SetActive(true);
+        player.pistolRHand.SetActive(true);
+        player.pistolLLeg.SetActive(false);
+        player.pistolRLeg.SetActive(false);
     }
 
     public override void OnExit(PlayerController player)
     {
         player.camController.State = CameraState.Grounded;
+        player.RHAim = false;
+        player.LHAim = false;
+        player.Anim.SetBool("isCombat", false);
+        player.pistolLHand.SetActive(false);
+        player.pistolRHand.SetActive(false);
+        player.pistolLLeg.SetActive(true);
+        player.pistolRLeg.SetActive(true);
     }
 
     public override void Update(PlayerController player)
@@ -33,12 +44,18 @@ public class Combat : PlayerStateBase<Combat>
             Debug.Log("Found Target");
             player.RotateToTarget(target.position);
             player.camController.State = CameraState.Combat;
+            player.Anim.SetBool("isTargetting", true);
+            player.RHAim = true;
+            player.LHAim = true;
         }
         else
         {
             Debug.Log("No Target");
             player.camController.State = CameraState.Grounded;
             player.RotateToVelocityGround();
+            player.Anim.SetBool("isTargetting", false);
+            player.RHAim = false;
+            player.LHAim = false;
         }
     }
 
