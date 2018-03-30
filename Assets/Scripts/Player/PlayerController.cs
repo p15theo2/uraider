@@ -8,6 +8,8 @@ public class PlayerController : MonoBehaviour
 {
     public float sprintSpeed = 5.0f;
     public float runSpeed = 3.0f;
+    public float swimSpeed = 2f;
+    public float treadSpeed = 1.2f;
     public float walkSpeed = 1.2f;
     public float gravity = 14.0f;
     public float jumpYVel = 5.8f;
@@ -60,42 +62,39 @@ public class PlayerController : MonoBehaviour
             charControl.Move(velocity * Time.deltaTime);
     }
 
-    public void MoveGrounded()
+    public void MoveGrounded(float speed, bool pushDown = true)
     {
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = cam.right;
-
-        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? walkSpeed
-            : runSpeed;
 
         Vector3 targetVector = camForward * Input.GetAxisRaw("Vertical")
             + camRight * Input.GetAxisRaw("Horizontal");
         if (targetVector.magnitude > 1.0f)
             targetVector = targetVector.normalized;
         targetVector.y = 0f;
-        targetVector *= moveSpeed;
+        targetVector *= speed;
 
-        velocity.y = 0f; // So slerp is correct
+        velocity.y = 0f; // So slerp is correct when pushDown is true
 
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * interpolationRate);
+
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
 
-        velocity.y = -gravity;  // so charControl is grounded consistently
+        if(pushDown)
+            velocity.y = -gravity;  // so charControl is grounded consistently
     }
 
-    public void MoveFree()
+    public void MoveFree(float speed)
     {
-        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? walkSpeed
-            : runSpeed;
-
         Vector3 targetVector = cam.forward * Input.GetAxisRaw("Vertical")
             + cam.right * Input.GetAxisRaw("Horizontal");
         if (targetVector.magnitude > 1.0f)
             targetVector = targetVector.normalized;
-        targetVector *= moveSpeed;
+        targetVector *= speed;
 
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * interpolationRate);
+
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
     }
@@ -123,9 +122,9 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
     }
 
-    public void ApplyGravity()
+    public void ApplyGravity(float amount)
     {
-        velocity.y -= gravity * Time.deltaTime;
+        velocity.y -= amount * Time.deltaTime;
     }
 
     private void OnAnimatorIK(int layerIndex)
@@ -134,25 +133,19 @@ public class PlayerController : MonoBehaviour
         {
             anim.SetIKPosition(AvatarIKGoal.RightHand, rhAimPoint.position);
             anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 1.0f);
-            anim.SetIKRotation(AvatarIKGoal.RightHand, rhAimPoint.rotation);
-            anim.SetIKRotationWeight(AvatarIKGoal.RightHand, 1.0f);
         }
         else
         {
             anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0f);
-            anim.SetIKRotationWeight(AvatarIKGoal.RightHand, 0f);
         }
         if (lhAim)
         {
             anim.SetIKPosition(AvatarIKGoal.LeftHand, lhAimPoint.position);
             anim.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1.0f);
-            anim.SetIKRotation(AvatarIKGoal.LeftHand, lhAimPoint.rotation);
-            anim.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1.0f);
         }
         else
         {
             anim.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
-            anim.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0f);
         }
     }
 

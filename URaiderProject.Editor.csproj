@@ -5,16 +5,16 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B084681D-3625-41BB-5595-7EE28D50820A}</ProjectGuid>
+    <ProjectGuid>{66D2B4E6-6A6C-E3FC-BC56-86B15202D5B6}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <AssemblyName>Assembly-CSharp-Editor</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
+    <TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>
     <CompilerResponseFile></CompilerResponseFile>
-    <UnityProjectType>Game:1</UnityProjectType>
+    <UnityProjectType>Editor:5</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2017.3.0f3</UnityVersion>
     <RootNamespace></RootNamespace>
@@ -285,74 +285,50 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="URaiderProject.csproj">
+      <Project>{B084681D-3625-41BB-5595-7EE28D50820A}</Project>
+      <Name>URaiderProject</Name>
+    </ProjectReference>
     <ProjectReference Include="URaiderProject.Plugins.csproj">
       <Project>{952EE9AA-F5E5-3D27-727C-B85256139186}</Project>
       <Name>URaiderProject.Plugins</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\DynamicBone\Demo\GameController.cs" />
-    <Compile Include="Assets\DynamicBone\Scripts\DynamicBone.cs" />
-    <Compile Include="Assets\DynamicBone\Scripts\DynamicBoneCollider.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Attributes\GetSetAttribute.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Attributes\MinAttribute.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Attributes\TrackballAttribute.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Attributes\TrackballGroupAttribute.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\AmbientOcclusionComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\BloomComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\BuiltinDebugViewsComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\ChromaticAberrationComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\ColorGradingComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\DepthOfFieldComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\DitheringComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\EyeAdaptationComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\FogComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\FxaaComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\GrainComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\MotionBlurComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\ScreenSpaceReflectionComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\TaaComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\UserLutComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Components\VignetteComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\AmbientOcclusionModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\AntialiasingModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\BloomModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\BuiltinDebugViewsModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\ChromaticAberrationModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\ColorGradingModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\DepthOfFieldModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\DitheringModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\EyeAdaptationModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\FogModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\GrainModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\MotionBlurModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\ScreenSpaceReflectionModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\UserLutModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Models\VignetteModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\PostProcessingBehaviour.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\PostProcessingComponent.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\PostProcessingContext.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\PostProcessingModel.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\PostProcessingProfile.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Utils\ColorGradingCurve.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Utils\GraphicsUtils.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Utils\MaterialFactory.cs" />
-    <Compile Include="Assets\PostProcessing\Runtime\Utils\RenderTextureFactory.cs" />
-    <Compile Include="Assets\PostProcessing\Utilities\CustomMotionTexture\ExampleWheelController.cs" />
-    <Compile Include="Assets\Scripts\Camera\CameraCollision.cs" />
-    <Compile Include="Assets\Scripts\Camera\CameraController.cs" />
-    <Compile Include="Assets\Scripts\Helpers\LedgeDetector.cs" />
-    <Compile Include="Assets\Scripts\Helpers\UMath.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
-    <Compile Include="Assets\Scripts\Player\States\Climbing.cs" />
-    <Compile Include="Assets\Scripts\Player\States\Combat.cs" />
-    <Compile Include="Assets\Scripts\Player\States\InAir.cs" />
-    <Compile Include="Assets\Scripts\Player\States\IPlayerState.cs" />
-    <Compile Include="Assets\Scripts\Player\States\Jumping.cs" />
-    <Compile Include="Assets\Scripts\Player\States\Locomotion.cs" />
-    <Compile Include="Assets\Scripts\Player\States\PlayerStateBase.cs" />
-    <Compile Include="Assets\Scripts\Player\States\Swimming.cs" />
-    <Compile Include="Assets\Scripts\Water\WaterVolume.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Attributes\PostProcessingModelEditorAttribute.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\AmbientOcclusionModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\AntialiasingModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\BloomModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\BuiltinDebugViewsEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\ChromaticAberrationEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\ColorGradingModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\DefaultPostFxModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\DepthOfFieldModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\DitheringModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\EyeAdaptationModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\FogModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\GrainModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\MotionBlurModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\ScreenSpaceReflectionModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\UserLutModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Models\VignetteModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Monitors\HistogramMonitor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Monitors\ParadeMonitor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Monitors\VectorscopeMonitor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Monitors\WaveformMonitor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PostProcessingBehaviourEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PostProcessingFactory.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PostProcessingInspector.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PostProcessingModelEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PostProcessingMonitor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PropertyDrawers\GetSetDrawer.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PropertyDrawers\MinDrawer.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\PropertyDrawers\TrackballGroupDrawer.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Utils\CurveEditor.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Utils\EditorGUIHelper.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Utils\EditorResources.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Utils\FxStyles.cs" />
+    <Compile Include="Assets\PostProcessing\Editor\Utils\ReflectionUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\DynamicBone\ReadMe.txt" />

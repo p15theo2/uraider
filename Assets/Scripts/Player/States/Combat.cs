@@ -37,7 +37,10 @@ public class Combat : PlayerStateBase<Combat>
 
         CheckForTargets(player);
 
-        player.MoveGrounded();
+        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
+            : player.runSpeed;
+
+        player.MoveGrounded(moveSpeed);
 
         if (target != null)
         {
@@ -57,6 +60,9 @@ public class Combat : PlayerStateBase<Combat>
             player.RHAim = false;
             player.LHAim = false;
         }
+
+        player.Anim.SetBool("isFiring", 
+            target != null && Input.GetMouseButton(0));
     }
 
     private void CheckForTargets(PlayerController player)

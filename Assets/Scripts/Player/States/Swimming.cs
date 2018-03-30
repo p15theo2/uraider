@@ -5,11 +5,17 @@ using UnityEngine;
 public class Swimming : PlayerStateBase<Swimming>
 {
     private bool isEntering = false;
+    private bool isTreading = false;
 
     public override void OnEnter(PlayerController player)
     {
         player.Anim.SetBool("isSwimming", true);
+        isEntering = true;
         player.camController.PivotOnTarget();
+
+        RenderSettings.fog = true;
+        RenderSettings.fogColor = Color.blue;
+        RenderSettings.fogDensity = 0.1f;
     }
 
     public override void OnExit(PlayerController player)
@@ -17,6 +23,8 @@ public class Swimming : PlayerStateBase<Swimming>
         player.Anim.SetBool("isSwimming", false);
         isEntering = false;
         player.camController.PivotOnPivot();
+
+        RenderSettings.fog = false;
     }
 
     public override void Update(PlayerController player)
@@ -24,24 +32,40 @@ public class Swimming : PlayerStateBase<Swimming>
         if (isEntering)
         {
             if (player.Velocity.y < 0f)
-                player.ApplyGravity();
+                player.ApplyGravity(-14);
             else
                 isEntering = false;
 
             return;
         }
 
-        if (Input.GetKey(KeyCode.Space))
-            SwimUp(player);
-        else if (Input.GetKey(KeyCode.LeftShift))
-            SwimDown(player);
-        else
-            player.MoveFree();
+        if (!isTreading)
+        {
+            if (Input.GetKey(KeyCode.Space))
+                SwimUp(player);
+            else if (Input.GetKey(KeyCode.LeftShift))
+                SwimDown(player);
+            else
+                player.MoveFree(player.swimSpeed);
 
-        if (player.Velocity.magnitude > 0.1f)
             player.RotateToVelocity();
+
+            RaycastHit hit;
+            if (Physics.Raycast(player.transform.position + (Vector3.up * 0.5f), Vector3.down, out hit, 0.5f))
+            {
+                if (hit.transform.gameObject.CompareTag("Water"))
+                {
+                    isTreading = true;
+                    player.Anim.SetBool("isTreading", true);
+                    player.transform.position = hit.point + (0.46f * Vector3.down);
+                }
+            }
+        }
         else
+        {
+            player.MoveGrounded(player.treadSpeed, false);
             player.RotateToVelocityGround();
+        }
     }
 
     private void SwimUp(PlayerController player)

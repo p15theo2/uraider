@@ -36,7 +36,10 @@ public class Locomotion : PlayerStateBase<Locomotion>
             return;
         }
 
-        player.MoveGrounded();
+        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
+            : player.runSpeed;
+
+        player.MoveGrounded(moveSpeed);
         player.RotateToVelocityGround();
 
         HandleLedgeStepMotion(player);
