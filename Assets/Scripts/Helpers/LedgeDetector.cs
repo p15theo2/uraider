@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class LedgeDetector
 {
+    private static LedgeDetector instance;
+
     private float minDepth = 0.1f;
     private float minHeight = 0.1f;
     private float maxAngle = 30f; // TODO: Implement use
@@ -11,6 +13,11 @@ public class LedgeDetector
 
     private Vector3 grabPoint;
     private Vector3 direction;
+
+    private LedgeDetector()
+    {
+
+    }
 
     public bool FindLedgeJump(Vector3 start, Vector3 dir, float maxDistance, float maxHeight)
     {
@@ -106,5 +113,15 @@ public class LedgeDetector
     public Vector3 Direction
     {
         get { return direction; }
+    }
+
+    public static LedgeDetector Instance
+    {
+        get
+        {
+            if (instance == null)
+                instance = new LedgeDetector();
+            return instance;
+        }
     }
 }

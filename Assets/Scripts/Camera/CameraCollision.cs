@@ -28,15 +28,14 @@ public class CameraCollision : MonoBehaviour
 
         if (Physics.SphereCast(rayStart, sphereRadius, dir, out hit, initDist))
         {
-            if (hit.transform.tag != "Player")
+            if (hit.transform.tag != "Player" && hit.transform.tag != "MainCamera")
             {
                 float pointOffset = (hit.point - pivot.position).magnitude;
                 cam.localPosition = Vector3.Slerp(cam.localPosition, cam.localPosition.normalized * pointOffset, Time.deltaTime * zoomSpeed);
+                return;
             }
         }
-        else
-        {
-            cam.localPosition = Vector3.Slerp(cam.localPosition, cam.localPosition.normalized * initDist, Time.deltaTime * retreatSpeed);
-        }
+
+        cam.localPosition = Vector3.Slerp(cam.localPosition, cam.localPosition.normalized * initDist, Time.deltaTime * retreatSpeed);
     }
 }

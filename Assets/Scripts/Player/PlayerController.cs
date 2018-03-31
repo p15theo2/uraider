@@ -4,20 +4,26 @@ using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(PlayerSFX))]
 public class PlayerController : MonoBehaviour
 {
-    public float sprintSpeed = 5.0f;
-    public float runSpeed = 3.0f;
+    [Header("Movement Speeds")]
+    public float sprintSpeed = 5f;
+    public float runSpeed = 3f;
     public float swimSpeed = 2f;
     public float treadSpeed = 1.2f;
     public float walkSpeed = 1.2f;
-    public float gravity = 14.0f;
+    [Header("Physics")]
+    public float gravity = 14f;
+    [Header("Jump Speeds")]
     public float jumpYVel = 5.8f;
     public float jumpZVel = 4f;
     public float sJumpYVel = 3f;
     public float sJumpZVel = 2.4f;
+    [Header("Smoothing")]
     public float interpolationRate = 8f;
 
+    [Header("Object References")]
     public CameraController camController;
     public Transform rhAimPoint;
     public Transform lhAimPoint;
@@ -30,6 +36,8 @@ public class PlayerController : MonoBehaviour
     private CharacterController charControl;
     private Transform cam;
     private Animator anim;
+    private PlayerSFX playerSFX;
+    private Weapon[] pistols = new Weapon[2];
 
     private bool isGrounded = true;
     private bool rhAim = false;
@@ -41,6 +49,9 @@ public class PlayerController : MonoBehaviour
         charControl = GetComponent<CharacterController>();
         cam = Camera.main.transform;
         anim = GetComponent<Animator>();
+        playerSFX = GetComponent<PlayerSFX>();
+        pistols[0] = pistolLHand.GetComponent<Weapon>();
+        pistols[1] = pistolRHand.GetComponent<Weapon>();
         velocity = Vector3.zero;
         currentState = Locomotion.Instance;
         currentState.OnEnter(this);
@@ -79,6 +90,8 @@ public class PlayerController : MonoBehaviour
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * interpolationRate);
 
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
+        anim.SetFloat("SignedSpeed", UMath.GetHorizontalMag(velocity) 
+            * Mathf.Sign(Input.GetAxisRaw("Vertical")));
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
 
         if(pushDown)
@@ -120,6 +133,16 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 direction = Vector3.Scale((target - transform.position), new Vector3(1.0f, 0.0f, 1.0f));
         transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+    }
+
+    public void FireRightPistol()
+    {
+        pistols[1].Fire();
+    }
+
+    public void FireLeftPistol()
+    {
+        pistols[0].Fire();
     }
 
     public void ApplyGravity(float amount)
@@ -193,6 +216,11 @@ public class PlayerController : MonoBehaviour
     public Animator Anim
     {
         get { return anim; }
+    }
+
+    public PlayerSFX SFX
+    {
+        get { return playerSFX; }
     }
 
     public bool Grounded

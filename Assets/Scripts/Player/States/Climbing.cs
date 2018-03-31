@@ -14,7 +14,7 @@ public class Climbing : PlayerStateBase<Climbing>
     private float grabForwardOffset = 0.1f;
     private float grabUpOffset = 2.1f; // 1.78
 
-    private LedgeDetector ledgeDetector = new LedgeDetector();
+    private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
     public override void OnEnter(PlayerController player)
     {
@@ -41,9 +41,22 @@ public class Climbing : PlayerStateBase<Climbing>
         speed = Input.GetAxisRaw("Horizontal");
         player.Anim.SetFloat("Speed", speed);
 
+        AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
+        if (isInCornering)
+        {
+            if (animState.IsName("InCornerLeft"))
+            {
+                Vector3 matchTarget = ledgeDetector.GrabPoint
+                    + Vector3.down * grabUpOffset
+                    - player.transform.forward * grabForwardOffset;
+                /*player.Anim.MatchTarget(matchTarget, Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up), 
+                    AvatarTarget.Root, new MatchTargetWeightMask(Vector3.one, 1f), 0.05f, 0.96f);*/
+            }
+        }
+
         Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.18f);
         ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
-        start = player.transform.position + (Vector3.up * 1.75f);
+        start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
         ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 1.0f);
 
         if (!ledgeLeft && speed < -0.1f)
@@ -64,8 +77,7 @@ public class Climbing : PlayerStateBase<Climbing>
 
         player.Anim.SetBool("isOutCorner", isOutCornering);
         player.Anim.SetBool("isInCorner", isInCornering);
-
-        AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
+        
         if (animState.IsName("CornerLeft"))
         {
             player.Anim.applyRootMotion = true;
@@ -103,7 +115,10 @@ public class Climbing : PlayerStateBase<Climbing>
 
     private void ClimbUp(PlayerController player)
     {
-        player.Anim.SetTrigger("ClimbUp");
+        if (Input.GetKey(KeyCode.LeftControl))
+            player.Anim.SetTrigger("Handstand");
+        else
+            player.Anim.SetTrigger("ClimbUp");
         isClimbingUp = true;
     }
 

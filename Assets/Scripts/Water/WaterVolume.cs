@@ -11,5 +11,19 @@ public class WaterVolume : MonoBehaviour
             PlayerController playControl = other.gameObject.GetComponent<PlayerController>();
             playControl.State = Swimming.Instance;
         }
+        else if (other.CompareTag("MainCamera"))
+        {
+            RenderSettings.fog = true;
+            RenderSettings.fogColor = Color.blue;
+            RenderSettings.fogDensity = 0.1f;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("MainCamera"))
+        {
+            RenderSettings.fog = false;
+        }
     }
 }

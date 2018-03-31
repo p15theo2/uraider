@@ -10,7 +10,7 @@ public class Locomotion : PlayerStateBase<Locomotion>
     private bool isRootMotion = false;  // Used for root motion of step ups
     private bool waitingBool = false;  // avoids early reset of root mtn
 
-    private LedgeDetector ledgeDetector = new LedgeDetector();
+    private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
     public override void OnEnter(PlayerController player)
     {
@@ -45,8 +45,23 @@ public class Locomotion : PlayerStateBase<Locomotion>
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);
 
-        isCrouch = Input.GetKey(KeyCode.LeftShift);
-        player.Anim.SetBool("isCrouch", isCrouch);
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            Vector3 start = player.transform.position
+                + player.transform.forward * 0.2f
+                + Vector3.down * 0.2f;
+            if (ledgeDetector.FindLedgeAtPoint(start, -player.transform.forward, 0.4f, 0.4f))
+            {
+                player.DisableCharControl();
+                player.Anim.SetTrigger("ToLedgeForward");
+                player.Anim.applyRootMotion = true;
+            }
+            else
+            {
+                isCrouch = Input.GetKey(KeyCode.LeftShift);
+                player.Anim.SetBool("isCrouch", isCrouch);
+            }
+        }
 
         if (Input.GetKeyDown(KeyCode.Space) && !isRootMotion)
             player.State = Jumping.Instance;

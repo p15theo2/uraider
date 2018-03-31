@@ -5,6 +5,8 @@ using UnityEngine;
 public class Combat : PlayerStateBase<Combat>
 {
     private Transform target;
+    private Weapon leftPistol;
+    private Weapon rightPistol;
 
     public override void OnEnter(PlayerController player)
     {
@@ -13,6 +15,8 @@ public class Combat : PlayerStateBase<Combat>
         player.pistolRHand.SetActive(true);
         player.pistolLLeg.SetActive(false);
         player.pistolRLeg.SetActive(false);
+        leftPistol = player.pistolLHand.GetComponent<Weapon>();
+        rightPistol = player.pistolRHand.GetComponent<Weapon>();
     }
 
     public override void OnExit(PlayerController player)
@@ -21,6 +25,7 @@ public class Combat : PlayerStateBase<Combat>
         player.RHAim = false;
         player.LHAim = false;
         player.Anim.SetBool("isCombat", false);
+        player.Anim.SetBool("isTargetting", false);
         player.pistolLHand.SetActive(false);
         player.pistolRHand.SetActive(false);
         player.pistolLLeg.SetActive(true);
@@ -44,25 +49,30 @@ public class Combat : PlayerStateBase<Combat>
 
         if (target != null)
         {
-            Debug.Log("Found Target");
             player.RotateToTarget(target.position);
             player.camController.State = CameraState.Combat;
             player.Anim.SetBool("isTargetting", true);
             player.RHAim = true;
             player.LHAim = true;
+            if (Input.GetMouseButtonDown(0))
+            {
+                player.Anim.SetBool("isFiring", true);
+                leftPistol.Target = target.position;
+                rightPistol.Target = target.position;
+            }
+            else
+            {
+                player.Anim.SetBool("isFiring", false);
+            }
         }
         else
         {
-            Debug.Log("No Target");
             player.camController.State = CameraState.Grounded;
             player.RotateToVelocityGround();
             player.Anim.SetBool("isTargetting", false);
             player.RHAim = false;
             player.LHAim = false;
         }
-
-        player.Anim.SetBool("isFiring", 
-            target != null && Input.GetMouseButton(0));
     }
 
     private void CheckForTargets(PlayerController player)

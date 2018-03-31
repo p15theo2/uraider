@@ -20,6 +20,7 @@ public class InAir : PlayerStateBase<InAir>
     public override void Update(PlayerController player)
     {
         velocity.y -= player.gravity * Time.deltaTime;
+        player.Anim.SetFloat("YSpeed", velocity.y);
 
         player.Velocity = velocity;
 

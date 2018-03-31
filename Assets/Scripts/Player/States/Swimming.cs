@@ -12,10 +12,6 @@ public class Swimming : PlayerStateBase<Swimming>
         player.Anim.SetBool("isSwimming", true);
         isEntering = true;
         player.camController.PivotOnTarget();
-
-        RenderSettings.fog = true;
-        RenderSettings.fogColor = Color.blue;
-        RenderSettings.fogDensity = 0.1f;
     }
 
     public override void OnExit(PlayerController player)
@@ -23,8 +19,6 @@ public class Swimming : PlayerStateBase<Swimming>
         player.Anim.SetBool("isSwimming", false);
         isEntering = false;
         player.camController.PivotOnPivot();
-
-        RenderSettings.fog = false;
     }
 
     public override void Update(PlayerController player)

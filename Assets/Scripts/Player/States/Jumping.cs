@@ -14,7 +14,7 @@ public class Jumping : PlayerStateBase<Jumping>
     private float grabForwardOffset = 0.1f;
     private float grabUpOffset = 2.1f; //1.78
 
-    private LedgeDetector ledgeDetector = new LedgeDetector();
+    private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
     public override void OnEnter(PlayerController player)
     {
@@ -92,6 +92,8 @@ public class Jumping : PlayerStateBase<Jumping>
             }
         }
 
+        player.Anim.SetFloat("YSpeed", velocity.y);
+        Debug.Log(velocity.y);
         player.Velocity = velocity;
     }
 }
