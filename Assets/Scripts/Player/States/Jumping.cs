@@ -40,6 +40,8 @@ public class Jumping : PlayerStateBase<Jumping>
         ledgesDetected = false;
         player.Anim.SetBool("isJumping", false);
         player.Anim.SetBool("isGrabbing", false);
+        if (player.Velocity.y < -10f && player.Grounded)
+            player.Stats.Health += (int)player.Velocity.y;
     }
 
     public override void Update(PlayerController player)

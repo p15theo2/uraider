@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerStats))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(PlayerSFX))]
 public class PlayerController : MonoBehaviour
@@ -36,6 +37,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController charControl;
     private Transform cam;
     private Animator anim;
+    private PlayerStats playerStats;
     private PlayerSFX playerSFX;
     private Weapon[] pistols = new Weapon[2];
 
@@ -52,6 +54,8 @@ public class PlayerController : MonoBehaviour
         playerSFX = GetComponent<PlayerSFX>();
         pistols[0] = pistolLHand.GetComponent<Weapon>();
         pistols[1] = pistolRHand.GetComponent<Weapon>();
+        playerStats = GetComponent<PlayerStats>();
+        playerStats.HideCanvas();
         velocity = Vector3.zero;
         currentState = Locomotion.Instance;
         currentState.OnEnter(this);
@@ -68,7 +72,7 @@ public class PlayerController : MonoBehaviour
         float animTime = animState.normalizedTime <= 1.0f ? animState.normalizedTime
             : animState.normalizedTime % (int)animState.normalizedTime;
         anim.SetFloat("AnimTime", animTime);  // Used for determining certain transitions
-        
+
         if (charControl.enabled)
             charControl.Move(velocity * Time.deltaTime);
     }
@@ -87,14 +91,19 @@ public class PlayerController : MonoBehaviour
 
         velocity.y = 0f; // So slerp is correct when pushDown is true
 
+        if (velocity.magnitude < 0.1f && targetVector.magnitude > 0f)
+        {
+            velocity = transform.forward * 0.1f;
+        }
+
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * interpolationRate);
 
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
-        anim.SetFloat("SignedSpeed", UMath.GetHorizontalMag(velocity) 
+        anim.SetFloat("SignedSpeed", UMath.GetHorizontalMag(velocity)
             * Mathf.Sign(Input.GetAxisRaw("Vertical")));
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
 
-        if(pushDown)
+        if (pushDown)
             velocity.y = -gravity;  // so charControl is grounded consistently
     }
 
@@ -135,6 +144,11 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
     }
 
+    public void ApplyGravity(float amount)
+    {
+        velocity.y -= amount * Time.deltaTime;
+    }
+
     public void FireRightPistol()
     {
         pistols[1].Fire();
@@ -143,11 +157,6 @@ public class PlayerController : MonoBehaviour
     public void FireLeftPistol()
     {
         pistols[0].Fire();
-    }
-
-    public void ApplyGravity(float amount)
-    {
-        velocity.y -= amount * Time.deltaTime;
     }
 
     private void OnAnimatorIK(int layerIndex)
@@ -221,6 +230,11 @@ public class PlayerController : MonoBehaviour
     public PlayerSFX SFX
     {
         get { return playerSFX; }
+    }
+
+    public PlayerStats Stats
+    {
+        get { return playerStats; }
     }
 
     public bool Grounded

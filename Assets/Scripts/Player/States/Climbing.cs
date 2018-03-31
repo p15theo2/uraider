@@ -54,7 +54,7 @@ public class Climbing : PlayerStateBase<Climbing>
             }
         }
 
-        Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.18f);
+        Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.2f);
         ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
         start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
         ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 1.0f);

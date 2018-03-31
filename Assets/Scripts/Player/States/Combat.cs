@@ -11,6 +11,7 @@ public class Combat : PlayerStateBase<Combat>
     public override void OnEnter(PlayerController player)
     {
         player.Anim.SetBool("isCombat", true);
+        player.Stats.ShowCanvas();
         player.pistolLHand.SetActive(true);
         player.pistolRHand.SetActive(true);
         player.pistolLLeg.SetActive(false);
@@ -25,6 +26,7 @@ public class Combat : PlayerStateBase<Combat>
         player.RHAim = false;
         player.LHAim = false;
         player.Anim.SetBool("isCombat", false);
+        player.Stats.HideCanvas();
         player.Anim.SetBool("isTargetting", false);
         player.pistolLHand.SetActive(false);
         player.pistolRHand.SetActive(false);
@@ -44,6 +46,9 @@ public class Combat : PlayerStateBase<Combat>
 
         float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
             : player.runSpeed;
+
+        player.Anim.SetFloat("Right", Input.GetAxis("Horizontal") * moveSpeed);
+        player.Anim.SetFloat("Forward", Input.GetAxis("Vertical") * moveSpeed);
 
         player.MoveGrounded(moveSpeed);
 
