@@ -121,20 +121,27 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
     }
 
-    public void RotateToVelocityGround()
+    public void RotateToVelocityGround(float smoothing = 0f)
     {
         if (UMath.GetHorizontalMag(velocity) > 0.1f)
         {
             Quaternion target = Quaternion.Euler(0.0f, Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg, 0.0f);
-            transform.rotation = target;
+            if (smoothing == 0f)
+                transform.rotation = target;
+            else
+                transform.rotation = Quaternion.Slerp(transform.rotation, target, smoothing * Time.deltaTime);
         }
     }
 
-    public void RotateToVelocity()
+    public void RotateToVelocity(float smoothing = 0f)
     {
         if (UMath.GetHorizontalMag(velocity) > 0.1f)
         {
-            transform.rotation = Quaternion.LookRotation(velocity);
+            if (smoothing == 0f)
+                transform.rotation = Quaternion.LookRotation(velocity);
+            else
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 
+                    smoothing * Time.deltaTime);
         }
     }
 

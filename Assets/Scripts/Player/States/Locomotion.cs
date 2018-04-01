@@ -6,7 +6,6 @@ public class Locomotion : PlayerStateBase<Locomotion>
 {
     private const float INTER_RATE = 8.0f;
 
-    private bool isCrouch = false;
     private bool isRootMotion = false;  // Used for root motion of step ups
     private bool waitingBool = false;  // avoids early reset of root mtn
 
@@ -19,7 +18,6 @@ public class Locomotion : PlayerStateBase<Locomotion>
 
     public override void OnExit(PlayerController player)
     {
-        isCrouch = false;
         isRootMotion = false;
     }
 
@@ -58,8 +56,7 @@ public class Locomotion : PlayerStateBase<Locomotion>
             }
             else
             {
-                isCrouch = Input.GetKey(KeyCode.LeftShift);
-                player.Anim.SetBool("isCrouch", isCrouch);
+                player.State = Crouch.Instance;
             }
         }
 

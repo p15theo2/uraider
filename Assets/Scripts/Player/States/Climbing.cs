@@ -38,23 +38,14 @@ public class Climbing : PlayerStateBase<Climbing>
 
     public override void Update(PlayerController player)
     {
+        CheckForFeetRoom(player);
+
         speed = Input.GetAxisRaw("Horizontal");
         player.Anim.SetFloat("Speed", speed);
 
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
-        if (isInCornering)
-        {
-            if (animState.IsName("InCornerLeft"))
-            {
-                Vector3 matchTarget = ledgeDetector.GrabPoint
-                    + Vector3.down * grabUpOffset
-                    - player.transform.forward * grabForwardOffset;
-                /*player.Anim.MatchTarget(matchTarget, Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up), 
-                    AvatarTarget.Root, new MatchTargetWeightMask(Vector3.one, 1f), 0.05f, 0.96f);*/
-            }
-        }
 
-        Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.2f);
+        Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.24f);
         ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
         start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
         ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 1.0f);
@@ -134,10 +125,23 @@ public class Climbing : PlayerStateBase<Climbing>
         Debug.DrawRay(start, player.transform.forward * 0.5f, Color.green);
         if (Physics.Raycast(start, player.transform.forward, out hit, 0.5f))
         {
-            player.transform.rotation = Quaternion.LookRotation(-hit.normal, Vector3.up);
+            player.transform.rotation = Quaternion.Slerp(player.transform.rotation,
+                Quaternion.LookRotation(-hit.normal, Vector3.up), 10f * Time.deltaTime);
             player.transform.position = new Vector3(hit.point.x - (player.transform.forward.x * grabForwardOffset),
                 player.transform.position.y,
                 hit.point.z - (player.transform.forward.z * grabForwardOffset));
+        }
+    }
+
+    private void CheckForFeetRoom(PlayerController player)
+    {
+        if (Physics.Raycast(player.transform.position, player.transform.forward, 0.5f))
+        {
+            player.Anim.SetBool("isFeetRoom", true);
+        }
+        else
+        {
+            player.Anim.SetBool("isFeetRoom", false);
         }
     }
 }

@@ -1,0 +1,36 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Crouch : PlayerStateBase<Crouch>
+{
+    public override void OnEnter(PlayerController player)
+    {
+        player.DisableCharControl();
+        player.Anim.applyRootMotion = true;
+        player.Anim.SetBool("isCrouch", true);
+        player.Velocity = Vector3.zero;
+    }
+
+    public override void OnExit(PlayerController player)
+    {
+        player.EnableCharControl();
+        player.Anim.applyRootMotion = false;
+        player.Anim.SetBool("isCrouch", false);
+    }
+
+    public override void Update(PlayerController player)
+    {
+        if(!Input.GetKey(KeyCode.LeftShift))
+        {
+            player.State = Locomotion.Instance;
+            return;
+        }
+
+        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
+            : player.runSpeed;
+
+        player.MoveGrounded(moveSpeed);
+        player.RotateToVelocityGround(4f);
+    }
+}

@@ -42,7 +42,7 @@ public class Swimming : PlayerStateBase<Swimming>
             else
                 player.MoveFree(player.swimSpeed);
 
-            player.RotateToVelocity();
+            player.RotateToVelocity(4f);
 
             RaycastHit hit;
             if (Physics.Raycast(player.transform.position + (Vector3.up * 0.5f), Vector3.down, out hit, 0.5f))
@@ -51,14 +51,14 @@ public class Swimming : PlayerStateBase<Swimming>
                 {
                     isTreading = true;
                     player.Anim.SetBool("isTreading", true);
-                    player.transform.position = hit.point + (0.46f * Vector3.down);
+                    player.transform.position = hit.point + (1.48f * Vector3.down);
                 }
             }
         }
         else
         {
             player.MoveGrounded(player.treadSpeed, false);
-            player.RotateToVelocityGround();
+            player.RotateToVelocityGround(4f);
         }
     }
 

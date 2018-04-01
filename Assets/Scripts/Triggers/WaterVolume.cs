@@ -25,5 +25,10 @@ public class WaterVolume : MonoBehaviour
         {
             RenderSettings.fog = false;
         }
+        else if (other.CompareTag("Player"))
+        {
+            PlayerController playControl = other.gameObject.GetComponent<PlayerController>();
+            playControl.State = Locomotion.Instance;
+        }
     }
 }

@@ -25,7 +25,7 @@ public class CameraController : MonoBehaviour
         camState = CameraState.Grounded;
         cam = GetComponentInChildren<Camera>();
         pivot = cam.transform.parent;
-        pivotOrigin = pivot.position;
+        pivotOrigin = pivot.localPosition;
     }
 
     private void LateUpdate()
@@ -63,12 +63,12 @@ public class CameraController : MonoBehaviour
 
     public void PivotOnTarget()
     {
-        pivot.position = target.position;
+        pivot.localPosition = Vector3.zero;
     }
 
     public void PivotOnPivot()
     {
-        pivot.position = pivotOrigin;
+        pivot.localPosition = pivotOrigin;
     }
 
     public CameraState State

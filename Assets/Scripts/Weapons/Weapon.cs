@@ -35,7 +35,7 @@ public class Weapon : MonoBehaviour
     {
         float time = Time.time;
         flash.SetActive(true);
-        while (Time.time - time < 0.06f)
+        while (Time.time - time < 0.05f)
         {
             yield return null;
         }
