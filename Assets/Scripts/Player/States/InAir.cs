@@ -4,12 +4,9 @@ using UnityEngine;
 
 public class InAir : PlayerStateBase<InAir>
 {
-    private Vector3 velocity;
-
     public override void OnEnter(PlayerController player)
     {
-        velocity = player.Velocity;
-        velocity.y = 0f;
+        player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
     }
 
     public override void OnExit(PlayerController player)
@@ -19,10 +16,9 @@ public class InAir : PlayerStateBase<InAir>
 
     public override void Update(PlayerController player)
     {
-        velocity.y -= player.gravity * Time.deltaTime;
-        player.Anim.SetFloat("YSpeed", velocity.y);
+        player.ApplyGravity(player.gravity);
 
-        player.Velocity = velocity;
+        player.Anim.SetFloat("YSpeed", player.Velocity.y);
 
         if (player.Grounded)
             player.State = Locomotion.Instance;

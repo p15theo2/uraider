@@ -6,13 +6,15 @@ public class Jumping : PlayerStateBase<Jumping>
 {
     private const float GRAB_TIME = 0.8f;
 
-    private Vector3 velocity;
     private Vector3 grabPoint;
+    private GrabType grabType;
     private bool hasJumped = false;
     private bool ledgesDetected = false;
     private float timeTracker = 0.0f;
     private float grabForwardOffset = 0.1f;
     private float grabUpOffset = 2.1f; //1.78
+    private float hipForwardOffset = 0.2f;
+    private float hipUpOffset = 0.94f;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
@@ -21,17 +23,10 @@ public class Jumping : PlayerStateBase<Jumping>
         player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isJumping", true);
 
-        velocity = player.Velocity;
-        velocity.y = 0f;
+        player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
 
-        if (ledgeDetector.FindLedgeJump(player.transform.position,
-            player.transform.forward, 4.4f, 3.4f))
-        {
-            if (!Physics.Raycast(ledgeDetector.GrabPoint, Vector3.down, 2.0f))
-                ledgesDetected = true;
-        }
-
-        player.Anim.SetBool("isGrabbing", ledgesDetected);
+        ledgesDetected = ledgeDetector.FindLedgeJump(player.transform.position,
+            player.transform.forward, 4.4f, 3.4f);
     }
 
     public override void OnExit(PlayerController player)
@@ -52,7 +47,52 @@ public class Jumping : PlayerStateBase<Jumping>
         {
             float curSpeed = UMath.GetHorizontalMag(player.Velocity);
 
-            if (!ledgesDetected)
+            if (ledgesDetected)
+            {
+                grabType = ledgeDetector.GetGrabType(player.transform.position, player.transform.forward,
+                player.jumpZVel, player.jumpYVel, -player.gravity);
+
+                if (grabType == GrabType.Hand)
+                {
+                    Debug.Log("Hand me");
+
+                    grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * grabForwardOffset),
+                        ledgeDetector.GrabPoint.y - grabUpOffset,
+                        ledgeDetector.GrabPoint.z - (player.transform.forward.z * grabForwardOffset));
+
+                    player.Velocity = UMath.VelocityToReachPoint(player.transform.position,
+                        grabPoint,
+                        player.gravity,
+                        GRAB_TIME);
+
+                    timeTracker = Time.time;
+
+                    player.Anim.SetBool("isGrabbing", true);
+                }
+                else if (grabType == GrabType.Hip)
+                {
+                    Debug.Log("Hip me");
+
+                    grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * hipForwardOffset),
+                        ledgeDetector.GrabPoint.y - hipUpOffset,
+                        ledgeDetector.GrabPoint.z - (player.transform.forward.z * hipForwardOffset));
+
+                    player.Velocity = UMath.VelocityToReachPoint(player.transform.position,
+                        grabPoint,
+                        player.gravity,
+                        GRAB_TIME);
+
+                    timeTracker = Time.time;
+
+                    player.Anim.SetBool("isHipping", true);
+                }
+                else
+                {
+                    ledgesDetected = false;
+                }
+            }
+
+            if (!ledgesDetected)  // can change in previous if - so NO else if
             {
                 float zVel = curSpeed > 1.2f ? player.jumpZVel
                     : curSpeed > 0.1f ? player.sJumpZVel
@@ -60,42 +100,28 @@ public class Jumping : PlayerStateBase<Jumping>
                 float yVel = curSpeed > 1.2f ? player.jumpYVel
                     : player.jumpYVel;
 
-                velocity = player.transform.forward * zVel
+                player.Velocity = player.transform.forward * zVel
                     + Vector3.up * yVel;
-            }
-            else
-            {
-                grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * grabForwardOffset), 
-                    ledgeDetector.GrabPoint.y - grabUpOffset, 
-                    ledgeDetector.GrabPoint.z - (player.transform.forward.z * grabForwardOffset));
-
-                velocity = UMath.VelocityToReachPoint(player.transform.position,
-                    grabPoint,
-                    player.gravity,
-                    GRAB_TIME);
-
-                timeTracker = Time.time;
             }
 
             hasJumped = true;
         }
         else if (hasJumped)
         {
-            velocity.y -= player.gravity * Time.deltaTime;
+            player.ApplyGravity(player.gravity);
 
             if (ledgesDetected && Time.time - timeTracker >= GRAB_TIME)
             {
                 player.transform.position = grabPoint;
-                player.State = Climbing.Instance;
+                if (grabType == GrabType.Hand)
+                    player.State = Climbing.Instance;
+                else
+                    player.State = Locomotion.Instance;
             }
-            else if (player.Grounded)
+            else if (player.Grounded && !ledgesDetected)
             {
                 player.State = Locomotion.Instance;
             }
         }
-
-        player.Anim.SetFloat("YSpeed", velocity.y);
-        Debug.Log(velocity.y);
-        player.Velocity = velocity;
     }
 }

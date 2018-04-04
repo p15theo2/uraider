@@ -8,12 +8,14 @@ public class LedgeDetector
 
     private float minDepth = 0.1f;
     private float minHeight = 0.1f;
+    private float hangRoom = 2.1f;
     private float maxAngle = 30f; // TODO: Implement use
     private int rayCount = 12;
 
     private Vector3 grabPoint;
     private Vector3 direction;
 
+    // Singleton to conserve memory and easy management
     private LedgeDetector()
     {
 
@@ -33,11 +35,11 @@ public class LedgeDetector
 
     public bool CanClimbUp(Vector3 start, Vector3 dir)
     {
-        if (FindLedgeJump(start + 2.12f * Vector3.up, dir, 1.0f, 1.8f))
-        {
-            return false;
-        }
-        return true;
+        if (!FindLedgeJump(start + 2.12f * Vector3.up, dir, 1.0f, 1.8f)
+            && FindLedgeAtPoint(start + 1.8f * Vector3.up, dir, 0.5f, 0.5f))
+            return true;
+
+        return false;
     }
 
     public bool FindLedgeAtPoint(Vector3 start, Vector3 dir, float maxDistance, float deltaHeight)
@@ -81,6 +83,25 @@ public class LedgeDetector
         return false;
     }
 
+    public GrabType GetGrabType(Vector3 position, Vector3 dir, float uHorizontal, float uVertical, float gravity)
+    {
+        float distance = Mathf.Abs(UMath.GetHorizontalMag(grabPoint) - UMath.GetHorizontalMag(position));
+        float timeAtX = UMath.TimeAtHorizontalPoint(uHorizontal, distance);
+        float yAtTimeAtX = UMath.PredictDisplacement(uVertical, timeAtX, gravity);
+        float difference = yAtTimeAtX - grabPoint.y;
+
+        if (difference <= -0.875f)
+        {
+            Vector3 start = grabPoint - dir * 0.1f;
+            if (!Physics.Raycast(start, Vector3.down, hangRoom))
+                return GrabType.Hand;
+        }
+        else if (difference <= 0f)
+            return GrabType.Hip;
+
+        return GrabType.Clear;
+    }
+
     public float MinDepth
     {
         get { return minDepth; }
@@ -91,6 +112,12 @@ public class LedgeDetector
     {
         get { return minHeight; }
         set { minHeight = value; }
+    }
+
+    public float HangRoom
+    {
+        get { return hangRoom; }
+        set { hangRoom = value; }
     }
 
     public float MaxAngle
@@ -124,4 +151,11 @@ public class LedgeDetector
             return instance;
         }
     }
+}
+
+public enum GrabType
+{
+    Hand,
+    Hip,
+    Clear
 }

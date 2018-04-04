@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Locomotion : PlayerStateBase<Locomotion>
 {
-    private const float INTER_RATE = 8.0f;
-
     private bool isRootMotion = false;  // Used for root motion of step ups
     private bool waitingBool = false;  // avoids early reset of root mtn
 

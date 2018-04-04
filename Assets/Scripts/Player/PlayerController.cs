@@ -32,6 +32,7 @@ public class PlayerController : MonoBehaviour
     public GameObject pistolRHand;
     public GameObject pistolLLeg;
     public GameObject pistolRLeg;
+    public Transform rightHandRef;
 
     private IPlayerState currentState;
     private CharacterController charControl;
@@ -67,14 +68,19 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("isGrounded", isGrounded);
 
         currentState.Update(this);
-
-        AnimatorStateInfo animState = anim.GetCurrentAnimatorStateInfo(0);
-        float animTime = animState.normalizedTime <= 1.0f ? animState.normalizedTime
-            : animState.normalizedTime % (int)animState.normalizedTime;
-        anim.SetFloat("AnimTime", animTime);  // Used for determining certain transitions
+        UpdateAnimator();
 
         if (charControl.enabled)
             charControl.Move(velocity * Time.deltaTime);
+    }
+
+    private void UpdateAnimator()
+    {
+        AnimatorStateInfo animState = anim.GetCurrentAnimatorStateInfo(0);
+        float animTime = animState.normalizedTime <= 1.0f ? animState.normalizedTime
+            : animState.normalizedTime % (int)animState.normalizedTime;
+
+        anim.SetFloat("AnimTime", animTime);  // Used for determining certain transitions
     }
 
     public void MoveGrounded(float speed, bool pushDown = true)
@@ -92,9 +98,7 @@ public class PlayerController : MonoBehaviour
         velocity.y = 0f; // So slerp is correct when pushDown is true
 
         if (velocity.magnitude < 0.1f && targetVector.magnitude > 0f)
-        {
-            velocity = transform.forward * 0.1f;
-        }
+            velocity = transform.forward * 0.1f;  // Player will rotate smoothly from idle
 
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * interpolationRate);
 

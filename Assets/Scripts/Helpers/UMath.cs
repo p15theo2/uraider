@@ -18,4 +18,14 @@ public static class UMath
         float y = (relative.y - (0.5f * (-gravity) * Mathf.Pow(time, 2))) / time;  // u = (s - 0.5at^2) / t
         return new Vector3(xz * dir.x, y, xz * dir.z);
     }
+
+    public static float PredictDisplacement(float speed, float time, float accel = 0)
+    {
+        return (speed * time) + (0.5f * accel * Mathf.Pow(time, 2));
+    }
+
+    public static float TimeAtHorizontalPoint(float speed, float displace)
+    {
+        return displace / speed;
+    }
 }
