@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Object References")]
     public CameraController camController;
+    public Transform waistBone;
     public Transform rhAimPoint;
     public Transform lhAimPoint;
     public GameObject pistolLHand;
@@ -45,6 +46,7 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded = true;
     private bool rhAim = false;
     private bool lhAim = false;
+    private Transform waistTarget;
     private Vector3 velocity;
 
     private void Start()
@@ -72,6 +74,20 @@ public class PlayerController : MonoBehaviour
 
         if (charControl.enabled)
             charControl.Move(velocity * Time.deltaTime);
+    }
+
+    private void LateUpdate()
+    {
+        if (waistTarget != null)
+        {
+            waistBone.rotation = Quaternion.LookRotation(
+                (waistTarget.position - transform.position).normalized, Vector3.up);
+
+            // Correction for faulty bone
+            waistBone.localRotation = Quaternion.Euler(
+                new Vector3(waistBone.localEulerAngles.x, waistBone.localEulerAngles.y, 
+                waistBone.localEulerAngles.z - 90f));
+        }
     }
 
     private void UpdateAnimator()
@@ -172,7 +188,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnAnimatorIK(int layerIndex)
     {
-        if (rhAim)
+        /*if (rhAim)
         {
             anim.SetIKPosition(AvatarIKGoal.RightHand, rhAimPoint.position);
             anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 1.0f);
@@ -189,7 +205,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             anim.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
-        }
+        }*/
     }
 
     public void MinimizeCollider()
@@ -231,6 +247,12 @@ public class PlayerController : MonoBehaviour
     public Transform Cam
     {
         get { return cam; }
+    }
+
+    public Transform WaistTarget
+    {
+        get { return waistTarget; }
+        set { waistTarget = value; }
     }
 
     public Animator Anim

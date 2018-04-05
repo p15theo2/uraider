@@ -25,6 +25,7 @@ public class Combat : PlayerStateBase<Combat>
         player.camController.State = CameraState.Grounded;
         player.RHAim = false;
         player.LHAim = false;
+        player.WaistTarget = null;
         player.Anim.SetBool("isCombat", false);
         player.Stats.HideCanvas();
         player.Anim.SetBool("isTargetting", false);
@@ -47,14 +48,15 @@ public class Combat : PlayerStateBase<Combat>
         float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
             : player.runSpeed;
 
-        player.Anim.SetFloat("Right", Input.GetAxis("Horizontal") * moveSpeed);
-        player.Anim.SetFloat("Forward", Input.GetAxis("Vertical") * moveSpeed);
+        player.Anim.SetFloat("Right", Input.GetAxis("Horizontal"));
+        player.Anim.SetFloat("Forward", Input.GetAxis("Vertical"));
 
         player.MoveGrounded(moveSpeed);
 
         if (target != null)
         {
             player.RotateToTarget(target.position);
+            player.WaistTarget = target;
             player.camController.State = CameraState.Combat;
             player.Anim.SetBool("isTargetting", true);
             player.RHAim = true;

@@ -17,6 +17,8 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
+        Cursor.visible = false;
+        canvas.enabled = false;
         itemsUI = canvas.transform.Find("Items").gameObject;
         for (int i = 0; i < items.Length; i++)
         {
