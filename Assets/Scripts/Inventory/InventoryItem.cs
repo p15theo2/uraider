@@ -5,6 +5,7 @@ using UnityEngine;
 public abstract class InventoryItem : MonoBehaviour
 {
     public string itemName;
+    public Sprite sprite;
 
     private void OnTriggerStay(Collider other)
     {
@@ -15,10 +16,12 @@ public abstract class InventoryItem : MonoBehaviour
                 PlayerInventory inventory =  other.gameObject.GetComponent<PlayerInventory>();
                 Animator anim = other.gameObject.GetComponent<Animator>();
 
-                inventory.Items.Add(this);
+                inventory.addItem(this);
                 anim.SetTrigger("PickUp");
-                Destroy(this.gameObject);
+                this.gameObject.SetActive(false);
             }
         }
     }
+
+    public abstract void Use(PlayerController player);
 }
