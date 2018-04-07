@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AIIdle : AIStateBase<AIIdle>
+public class AIIdle : StateBase<EnemyController>
 {
     public override void OnEnter(EnemyController enemy)
     {

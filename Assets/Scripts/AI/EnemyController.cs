@@ -9,7 +9,7 @@ public class EnemyController : MonoBehaviour
 
     private int health;
 
-    private IAIState state;
+    private StateMachine<EnemyController> stateMachine;
     private GameObject target;
     private Animator anim;
     private CharacterController charControl;
@@ -17,15 +17,23 @@ public class EnemyController : MonoBehaviour
 
     private void Start()
     {
-        state = AIIdle.Instance;
         anim = GetComponent<Animator>();
         charControl = GetComponent<CharacterController>();
         target = GameObject.FindGameObjectWithTag("Player");
+        stateMachine = new StateMachine<EnemyController>(this);
+        SetUpStates();
+        stateMachine.GoToState<AIIdle>();
+    }
+
+    private void SetUpStates()
+    {
+        stateMachine.AddState(new AIIdle());
+        stateMachine.AddState(new AIEngaged());
     }
 
     private void Update()
     {
-        state.Update(this);
+        stateMachine.Update();
 
         if (charControl.enabled)
             charControl.Move(velocity * Time.deltaTime);
@@ -68,14 +76,9 @@ public class EnemyController : MonoBehaviour
         set { health = value; }
     }
 
-    public IAIState State
+    public StateMachine<EnemyController> StateMachine
     {
-        get { return state; }
-        set {
-            state.OnExit(this);
-            state = value;
-            state.OnEnter(this);
-        }
+        get { return stateMachine; }
     }
 
     public Animator Anim

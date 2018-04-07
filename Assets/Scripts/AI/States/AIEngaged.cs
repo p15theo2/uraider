@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AIEngaged : AIStateBase<AIEngaged>
+public class AIEngaged : StateBase<EnemyController>
 {
     public override void OnEnter(EnemyController enemy)
     {

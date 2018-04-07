@@ -60,8 +60,6 @@ public class PlayerController : MonoBehaviour
         playerStats = GetComponent<PlayerStats>();
         playerStats.HideCanvas();
         velocity = Vector3.zero;
-        /*currentState = Locomotion.Instance;
-        currentState.OnEnter(this);*/
         stateMachine = new StateMachine<PlayerController>(this);
         SetUpStateMachine();
     }
@@ -70,6 +68,7 @@ public class PlayerController : MonoBehaviour
     {
         stateMachine.AddState(new Locomotion());
         stateMachine.AddState(new Combat());
+        stateMachine.AddState(new Climbing());
         stateMachine.AddState(new Crouch());
         stateMachine.AddState(new Dead());
         stateMachine.AddState(new InAir());
@@ -83,7 +82,6 @@ public class PlayerController : MonoBehaviour
         isGrounded = charControl.isGrounded && velocity.y <= 0.0f;
         anim.SetBool("isGrounded", isGrounded);
 
-        //currentState.Update(this);
         stateMachine.Update();
         UpdateAnimator();
 
@@ -242,17 +240,6 @@ public class PlayerController : MonoBehaviour
     {
         charControl.enabled = true;
     }
-    /*
-    public IPlayerState State
-    {
-        get { return currentState; }
-        set
-        {
-            currentState.OnExit(this);
-            currentState = value;
-            currentState.OnEnter(this);
-        }
-    }*/
 
     public StateMachine<PlayerController> StateMachine
     {
