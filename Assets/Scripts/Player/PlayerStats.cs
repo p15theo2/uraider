@@ -42,7 +42,7 @@ public class PlayerStats : MonoBehaviour
             else if (health <= 0)
             {
                 health = 0;
-                player.State = Dead.Instance;
+                player.StateMachine.GoToState<Dead>();
             }
 
             healthBar.localScale = new Vector3((float)health / maxHealth, 1f, 1f);

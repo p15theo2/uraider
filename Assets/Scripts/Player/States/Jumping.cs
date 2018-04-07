@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Jumping : PlayerStateBase<Jumping>
+public class Jumping : StateBase<PlayerController>
 {
     private const float GRAB_TIME = 0.8f;
 
@@ -114,13 +114,13 @@ public class Jumping : PlayerStateBase<Jumping>
             {
                 player.transform.position = grabPoint;
                 if (grabType == GrabType.Hand)
-                    player.State = Climbing.Instance;
+                    player.StateMachine.GoToState<Climbing>();
                 else
-                    player.State = Locomotion.Instance;
+                    player.StateMachine.GoToState<Locomotion>();
             }
             else if (player.Grounded && !ledgesDetected)
             {
-                player.State = Locomotion.Instance;
+                player.StateMachine.GoToState<Locomotion>();
             }
         }
     }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Swimming : PlayerStateBase<Swimming>
+public class Swimming : StateBase<PlayerController>
 {
     private bool isEntering = false;
     private bool isTreading = false;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Crouch : PlayerStateBase<Crouch>
+public class Crouch : StateBase<PlayerController>
 {
     public override void OnEnter(PlayerController player)
     {
@@ -23,7 +23,7 @@ public class Crouch : PlayerStateBase<Crouch>
     {
         if(!Input.GetButton("Crouch"))
         {
-            player.State = Locomotion.Instance;
+            player.StateMachine.GoToState<Locomotion>();
             return;
         }
 

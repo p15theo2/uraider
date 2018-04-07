@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Climbing : PlayerStateBase<Climbing>
+public class Climbing : StateBase<PlayerController>
 {
     private bool ledgeLeft;
     private bool ledgeInnerLeft;
@@ -62,11 +62,11 @@ public class Climbing : PlayerStateBase<Climbing>
             if (animState.IsName("ClimbUp"))
             {
                 Vector3 matchPoint = ledgeDetector.GrabPoint + player.transform.forward * 0.18f;
-                player.Anim.MatchTarget(matchPoint, player.transform.rotation, AvatarTarget.Root, 
+                player.Anim.MatchTarget(matchPoint, player.transform.rotation, AvatarTarget.Root,
                     new MatchTargetWeightMask(Vector3.one, 1f), 0.03f, 0.9f);
             }
             else if (animState.IsName("Locomotion"))
-                player.State = Locomotion.Instance;
+                player.StateMachine.GoToState<Locomotion>();
 
             return;
         }
@@ -125,7 +125,7 @@ public class Climbing : PlayerStateBase<Climbing>
 
     private void LetGo(PlayerController player)
     {
-        player.State = InAir.Instance;
+        player.StateMachine.GoToState<InAir>();
     }
 
     private void AdjustPosition(PlayerController player)

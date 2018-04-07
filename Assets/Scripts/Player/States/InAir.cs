@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InAir : PlayerStateBase<InAir>
+public class InAir : StateBase<PlayerController>
 {
     public override void OnEnter(PlayerController player)
     {
@@ -21,6 +21,6 @@ public class InAir : PlayerStateBase<InAir>
         player.Anim.SetFloat("YSpeed", player.Velocity.y);
 
         if (player.Grounded)
-            player.State = Locomotion.Instance;
+            player.StateMachine.GoToState<Locomotion>();
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Dead : PlayerStateBase<Dead>
+public class Dead : StateBase<PlayerController>
 {
     public override void OnEnter(PlayerController player)
     {

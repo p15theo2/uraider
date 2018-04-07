@@ -35,16 +35,17 @@ public class PlayerController : MonoBehaviour
     public GameObject pistolLLeg;
     public GameObject pistolRLeg;
 
-    private IPlayerState currentState;
+    private bool isGrounded = true;
+    private bool isFootIK = true;
+
+    // private IPlayerState currentState;
+    private StateMachine<PlayerController> stateMachine;
     private CharacterController charControl;
     private Transform cam;
     private Animator anim;
     private PlayerStats playerStats;
     private PlayerSFX playerSFX;
     private Weapon[] pistols = new Weapon[2];
-
-    private bool isGrounded = true;
-    private bool isFootIK = true;
     private Transform waistTarget;
     private Vector3 velocity;
 
@@ -59,8 +60,22 @@ public class PlayerController : MonoBehaviour
         playerStats = GetComponent<PlayerStats>();
         playerStats.HideCanvas();
         velocity = Vector3.zero;
-        currentState = Locomotion.Instance;
-        currentState.OnEnter(this);
+        /*currentState = Locomotion.Instance;
+        currentState.OnEnter(this);*/
+        stateMachine = new StateMachine<PlayerController>(this);
+        SetUpStateMachine();
+    }
+
+    private void SetUpStateMachine()
+    {
+        stateMachine.AddState(new Locomotion());
+        stateMachine.AddState(new Combat());
+        stateMachine.AddState(new Crouch());
+        stateMachine.AddState(new Dead());
+        stateMachine.AddState(new InAir());
+        stateMachine.AddState(new Jumping());
+        stateMachine.AddState(new Swimming());
+        stateMachine.GoToState<Locomotion>();
     }
 
     private void Update()
@@ -68,7 +83,8 @@ public class PlayerController : MonoBehaviour
         isGrounded = charControl.isGrounded && velocity.y <= 0.0f;
         anim.SetBool("isGrounded", isGrounded);
 
-        currentState.Update(this);
+        //currentState.Update(this);
+        stateMachine.Update();
         UpdateAnimator();
 
         if (charControl.enabled)
@@ -226,7 +242,7 @@ public class PlayerController : MonoBehaviour
     {
         charControl.enabled = true;
     }
-
+    /*
     public IPlayerState State
     {
         get { return currentState; }
@@ -236,6 +252,11 @@ public class PlayerController : MonoBehaviour
             currentState = value;
             currentState.OnEnter(this);
         }
+    }*/
+
+    public StateMachine<PlayerController> StateMachine
+    {
+        get { return stateMachine; }
     }
 
     public CharacterController Controller

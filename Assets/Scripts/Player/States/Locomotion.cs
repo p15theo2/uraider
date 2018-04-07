@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Locomotion : PlayerStateBase<Locomotion>
+public class Locomotion : StateBase<PlayerController>
 {
     private bool isRootMotion = false;  // Used for root motion of step ups
     private bool waitingBool = false;  // avoids early reset of root mtn
@@ -23,12 +23,12 @@ public class Locomotion : PlayerStateBase<Locomotion>
     {
         if (!player.Grounded && !isRootMotion)
         {
-            player.State = InAir.Instance;
+            player.StateMachine.GoToState<InAir>();
             return;
         }
         else if (Input.GetButtonDown("Draw Weapon"))
         {
-            player.State = Combat.Instance;
+            player.StateMachine.GoToState<Combat>();
             return;
         }
 
@@ -54,12 +54,12 @@ public class Locomotion : PlayerStateBase<Locomotion>
             }
             else
             {
-                player.State = Crouch.Instance;
+                player.StateMachine.GoToState<Crouch>();
             }
         }
 
         if (Input.GetButtonDown("Jump") && !isRootMotion)
-            player.State = Jumping.Instance;
+            player.StateMachine.GoToState<Jumping>();;
     }
 
     private void LookForStepLedges(PlayerController player)

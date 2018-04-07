@@ -9,7 +9,7 @@ public class WaterVolume : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             PlayerController playControl = other.gameObject.GetComponent<PlayerController>();
-            playControl.State = Swimming.Instance;
+            playControl.StateMachine.GoToState<Swimming>();
         }
         else if (other.CompareTag("MainCamera"))
         {
@@ -28,7 +28,7 @@ public class WaterVolume : MonoBehaviour
         else if (other.CompareTag("Player"))
         {
             PlayerController playControl = other.gameObject.GetComponent<PlayerController>();
-            playControl.State = Locomotion.Instance;
+            playControl.StateMachine.GoToState<Locomotion>();
         }
     }
 }

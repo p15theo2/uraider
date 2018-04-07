@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Combat : PlayerStateBase<Combat>
+public class Combat : StateBase<PlayerController>
 {
     private Transform target;
     private Weapon leftPistol;
@@ -37,7 +37,7 @@ public class Combat : PlayerStateBase<Combat>
     {
         if (!Input.GetButton("Draw Weapon"))
         {
-            player.State = Locomotion.Instance;
+            player.StateMachine.GoToState<Locomotion>();
             return;
         }
 
