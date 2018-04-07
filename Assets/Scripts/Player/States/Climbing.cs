@@ -78,11 +78,11 @@ public class Climbing : PlayerStateBase<Climbing>
         HandleCorners(player);
         AdjustPosition(player);
 
-        if (Input.GetKey(KeyCode.Space) && !isOutCornering && !isClimbingUp && right == 0.0f
+        if (Input.GetButton("Jump") && !isOutCornering && !isClimbingUp && right == 0.0f
             && ledgeDetector.CanClimbUp(player.transform.position, player.transform.forward))
             ClimbUp(player);
 
-        if (Input.GetKey(KeyCode.LeftShift) && !isOutCornering && !isInCornering && !isClimbingUp
+        if (Input.GetButton("Crouch") && !isOutCornering && !isInCornering && !isClimbingUp
             && right == 0f)
             LetGo(player);
     }
@@ -116,7 +116,7 @@ public class Climbing : PlayerStateBase<Climbing>
 
     private void ClimbUp(PlayerController player)
     {
-        if (Input.GetKey(KeyCode.LeftControl))
+        if (Input.GetButton("Walk"))
             player.Anim.SetTrigger("Handstand");
         else
             player.Anim.SetTrigger("ClimbUp");

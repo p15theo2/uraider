@@ -26,7 +26,7 @@ public class Swimming : PlayerStateBase<Swimming>
         if (isEntering)
         {
             if (player.Velocity.y < 0f)
-                player.ApplyGravity(-14);
+                player.ApplyGravity(-player.gravity);
             else
                 isEntering = false;
 
@@ -35,9 +35,9 @@ public class Swimming : PlayerStateBase<Swimming>
 
         if (!isTreading)
         {
-            if (Input.GetKey(KeyCode.Space))
+            if (Input.GetButton("Jump"))
                 SwimUp(player);
-            else if (Input.GetKey(KeyCode.LeftShift))
+            else if (Input.GetButton("Crouch"))
                 SwimDown(player);
             else
                 player.MoveFree(player.swimSpeed);
@@ -57,8 +57,8 @@ public class Swimming : PlayerStateBase<Swimming>
         }
         else
         {
-            player.MoveGrounded(player.treadSpeed, false);
-            player.RotateToVelocityGround(4f);
+            player.MoveGrounded(player.treadSpeed, false, 4f);
+            player.RotateToVelocityGround();
         }
     }
 

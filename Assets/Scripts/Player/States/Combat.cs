@@ -23,8 +23,6 @@ public class Combat : PlayerStateBase<Combat>
     public override void OnExit(PlayerController player)
     {
         player.camController.State = CameraState.Grounded;
-        player.RHAim = false;
-        player.LHAim = false;
         player.WaistTarget = null;
         player.Anim.SetBool("isCombat", false);
         player.Stats.HideCanvas();
@@ -37,7 +35,7 @@ public class Combat : PlayerStateBase<Combat>
 
     public override void Update(PlayerController player)
     {
-        if (!Input.GetMouseButton(1))
+        if (!Input.GetButton("Draw Weapon"))
         {
             player.State = Locomotion.Instance;
             return;
@@ -45,7 +43,7 @@ public class Combat : PlayerStateBase<Combat>
 
         CheckForTargets(player);
 
-        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
+        float moveSpeed = Input.GetButton("Walk") ? player.walkSpeed
             : player.runSpeed;
 
         player.Anim.SetFloat("Right", Input.GetAxis("Horizontal"));
@@ -59,8 +57,6 @@ public class Combat : PlayerStateBase<Combat>
             player.WaistTarget = target;
             player.camController.State = CameraState.Combat;
             player.Anim.SetBool("isTargetting", true);
-            player.RHAim = true;
-            player.LHAim = true;
             if (Input.GetMouseButtonDown(0))
             {
                 player.Anim.SetBool("isFiring", true);
@@ -77,8 +73,6 @@ public class Combat : PlayerStateBase<Combat>
             player.camController.State = CameraState.Grounded;
             player.RotateToVelocityGround();
             player.Anim.SetBool("isTargetting", false);
-            player.RHAim = false;
-            player.LHAim = false;
         }
     }
 

@@ -26,13 +26,13 @@ public class Locomotion : PlayerStateBase<Locomotion>
             player.State = InAir.Instance;
             return;
         }
-        else if (Input.GetMouseButtonDown(1))
+        else if (Input.GetButtonDown("Draw Weapon"))
         {
             player.State = Combat.Instance;
             return;
         }
 
-        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
+        float moveSpeed = Input.GetButton("Walk") ? player.walkSpeed
             : player.runSpeed;
 
         player.MoveGrounded(moveSpeed);
@@ -41,7 +41,7 @@ public class Locomotion : PlayerStateBase<Locomotion>
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);
 
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetButtonDown("Crouch"))
         {
             Vector3 start = player.transform.position
                 + player.transform.forward * 0.2f
@@ -58,13 +58,13 @@ public class Locomotion : PlayerStateBase<Locomotion>
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && !isRootMotion)
+        if (Input.GetButtonDown("Jump") && !isRootMotion)
             player.State = Jumping.Instance;
     }
 
     private void LookForStepLedges(PlayerController player)
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !isRootMotion)
+        if (Input.GetButtonDown("Jump") && !isRootMotion)
         {
             isRootMotion = ledgeDetector.FindPlatformInfront(player.transform.position,
                 player.transform.forward, 2f);

@@ -21,14 +21,13 @@ public class Crouch : PlayerStateBase<Crouch>
 
     public override void Update(PlayerController player)
     {
-        if(!Input.GetKey(KeyCode.LeftShift))
+        if(!Input.GetButton("Crouch"))
         {
             player.State = Locomotion.Instance;
             return;
         }
 
-        float moveSpeed = Input.GetKey(KeyCode.LeftControl) ? player.walkSpeed
-            : player.runSpeed;
+        float moveSpeed = player.walkSpeed;
 
         player.MoveGrounded(moveSpeed);
         player.RotateToVelocityGround(4f);

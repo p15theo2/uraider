@@ -9,11 +9,10 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement Speeds")]
-    public float sprintSpeed = 5f;
     public float runSpeed = 3f;
+    public float walkSpeed = 1.2f;
     public float swimSpeed = 2f;
     public float treadSpeed = 1.2f;
-    public float walkSpeed = 1.2f;
     [Header("Physics")]
     public float gravity = 14f;
     [Header("Jump Speeds")]
@@ -23,17 +22,18 @@ public class PlayerController : MonoBehaviour
     public float sJumpZVel = 2.4f;
     [Header("Smoothing")]
     public float interpolationRate = 8f;
+    [Header("IK Settings")]
+    public float footYOffset = 0.1f;
 
-    [Header("Object References")]
+    [Header("References")]
     public CameraController camController;
     public Transform waistBone;
-    public Transform rhAimPoint;
-    public Transform lhAimPoint;
+    public Transform rightFootIK;
+    public Transform leftFootIK;
     public GameObject pistolLHand;
     public GameObject pistolRHand;
     public GameObject pistolLLeg;
     public GameObject pistolRLeg;
-    public Transform rightHandRef;
 
     private IPlayerState currentState;
     private CharacterController charControl;
@@ -44,8 +44,7 @@ public class PlayerController : MonoBehaviour
     private Weapon[] pistols = new Weapon[2];
 
     private bool isGrounded = true;
-    private bool rhAim = false;
-    private bool lhAim = false;
+    private bool isFootIK = true;
     private Transform waistTarget;
     private Vector3 velocity;
 
@@ -76,6 +75,28 @@ public class PlayerController : MonoBehaviour
             charControl.Move(velocity * Time.deltaTime);
     }
 
+    private void OnAnimatorIK(int layerIndex)
+    {
+        if (isFootIK && UMath.GetHorizontalMag(velocity) < 0.1f)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(leftFootIK.position, Vector3.down, out hit, 0.5f))
+            {
+                anim.SetIKPosition(AvatarIKGoal.LeftFoot, hit.point + Vector3.up * footYOffset);
+                anim.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 1f);
+                anim.SetIKRotation(AvatarIKGoal.LeftFoot, Quaternion.LookRotation(transform.forward, hit.normal));
+                anim.SetIKRotationWeight(AvatarIKGoal.LeftFoot, 1f);
+            }
+            if (Physics.Raycast(rightFootIK.position, Vector3.down, out hit, 0.5f))
+            {
+                anim.SetIKPosition(AvatarIKGoal.RightFoot, hit.point + Vector3.up * footYOffset);
+                anim.SetIKPositionWeight(AvatarIKGoal.RightFoot, 1f);
+                anim.SetIKRotation(AvatarIKGoal.RightFoot, Quaternion.LookRotation(transform.forward, hit.normal));
+                anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, 1f);
+            }
+        }
+    }
+
     private void LateUpdate()
     {
         if (waistTarget != null)
@@ -99,7 +120,7 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("AnimTime", animTime);  // Used for determining certain transitions
     }
 
-    public void MoveGrounded(float speed, bool pushDown = true)
+    public void MoveGrounded(float speed, bool pushDown = true, float smoothing = 8f)
     {
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = cam.right;
@@ -116,7 +137,7 @@ public class PlayerController : MonoBehaviour
         if (velocity.magnitude < 0.1f && targetVector.magnitude > 0f)
             velocity = transform.forward * 0.1f;  // Player will rotate smoothly from idle
 
-        velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * interpolationRate);
+        velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * smoothing);
 
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
         anim.SetFloat("SignedSpeed", UMath.GetHorizontalMag(velocity)
@@ -127,7 +148,7 @@ public class PlayerController : MonoBehaviour
             velocity.y = -gravity;  // so charControl is grounded consistently
     }
 
-    public void MoveFree(float speed)
+    public void MoveFree(float speed, float smoothing = 8f)
     {
         Vector3 targetVector = cam.forward * Input.GetAxisRaw("Vertical")
             + cam.right * Input.GetAxisRaw("Horizontal");
@@ -135,7 +156,7 @@ public class PlayerController : MonoBehaviour
             targetVector = targetVector.normalized;
         targetVector *= speed;
 
-        velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * interpolationRate);
+        velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * smoothing);
 
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
@@ -184,28 +205,6 @@ public class PlayerController : MonoBehaviour
     public void FireLeftPistol()
     {
         pistols[0].Fire();
-    }
-
-    private void OnAnimatorIK(int layerIndex)
-    {
-        /*if (rhAim)
-        {
-            anim.SetIKPosition(AvatarIKGoal.RightHand, rhAimPoint.position);
-            anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 1.0f);
-        }
-        else
-        {
-            anim.SetIKPositionWeight(AvatarIKGoal.RightHand, 0f);
-        }
-        if (lhAim)
-        {
-            anim.SetIKPosition(AvatarIKGoal.LeftHand, lhAimPoint.position);
-            anim.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1.0f);
-        }
-        else
-        {
-            anim.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
-        }*/
     }
 
     public void MinimizeCollider()
@@ -275,16 +274,10 @@ public class PlayerController : MonoBehaviour
         get { return isGrounded; }
     }
 
-    public bool RHAim
+    public bool IsFootIK
     {
-        get { return rhAim; }
-        set { rhAim = value; }
-    }
-
-    public bool LHAim
-    {
-        get { return lhAim; }
-        set { lhAim = value; }
+        get { return isFootIK; }
+        set { isFootIK = value; }
     }
 
     public Vector3 Velocity

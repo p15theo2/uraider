@@ -53,7 +53,7 @@ public class CameraController : MonoBehaviour
 
     private void HandleMovement()
     {
-        transform.position = target.position;
+        transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime * smoothing);
     }
 
     private void DoExtraRotation()

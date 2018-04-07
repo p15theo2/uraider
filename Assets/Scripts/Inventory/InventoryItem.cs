@@ -11,7 +11,7 @@ public abstract class InventoryItem : MonoBehaviour
     {
         if (other.transform.CompareTag("Player"))
         {
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetButtonDown("Action"))
             {
                 PlayerInventory inventory =  other.gameObject.GetComponent<PlayerInventory>();
                 Animator anim = other.gameObject.GetComponent<Animator>();
