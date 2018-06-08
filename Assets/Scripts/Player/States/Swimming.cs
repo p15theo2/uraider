@@ -40,7 +40,7 @@ public class Swimming : StateBase<PlayerController>
             else if (Input.GetButton("Crouch"))
                 SwimDown(player);
             else
-                player.MoveFree(player.swimSpeed);
+                player.MoveGrounded(player.swimSpeed, false);
 
             player.RotateToVelocity(4f);
 
@@ -51,6 +51,7 @@ public class Swimming : StateBase<PlayerController>
                 {
                     isTreading = true;
                     player.Anim.SetBool("isTreading", true);
+                    player.camController.PivotOnHead();
                     player.transform.position = hit.point + (1.48f * Vector3.down);
                 }
             }

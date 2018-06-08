@@ -89,7 +89,7 @@ public class Climbing : StateBase<PlayerController>
 
     private void HandleCorners(PlayerController player)
     {
-        Vector3 start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.right * 0.24f);
+        Vector3 start = player.transform.position + (Vector3.up * 2f) - (player.transform.right * 0.24f);
         ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
 
         start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
@@ -133,17 +133,17 @@ public class Climbing : StateBase<PlayerController>
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
         RaycastHit hit;
-        Vector3 start = player.transform.position + Vector3.up * 1.7f;
-        Debug.DrawRay(start, player.transform.forward * 0.5f, Color.green);
+        Vector3 start = player.transform.position + Vector3.up * 2f;
+        Debug.DrawRay(start, player.transform.forward * 0.4f, Color.green);
         
-        if (Physics.Raycast(start, player.transform.forward, out hit, 0.5f))
+        if (Physics.Raycast(start, player.transform.forward, out hit, 0.4f))
         {
             player.transform.rotation = Quaternion.Slerp(player.transform.rotation,
                 Quaternion.LookRotation(-hit.normal, Vector3.up), 10f * Time.deltaTime);
 
             player.transform.position = new Vector3(
                 hit.point.x 
-                - (player.transform.forward.x * (animState.IsName("BracedHang") ? bracedForwardOffset : grabForwardOffset )),
+                - (player.transform.forward.x * (animState.IsName("BracedHang") ? bracedForwardOffset : grabForwardOffset)),
 
                 player.transform.position.y,
 

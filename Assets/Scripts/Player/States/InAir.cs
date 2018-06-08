@@ -6,6 +6,7 @@ public class InAir : StateBase<PlayerController>
 {
     public override void OnEnter(PlayerController player)
     {
+        player.Anim.applyRootMotion = false;
         player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
     }
 

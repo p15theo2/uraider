@@ -35,7 +35,10 @@ public class Locomotion : StateBase<PlayerController>
         float moveSpeed = Input.GetButton("Walk") ? player.walkSpeed
             : player.runSpeed;
 
+        player.Anim.SetFloat("Forward", Input.GetAxisRaw("Vertical"));
+
         player.MoveGrounded(moveSpeed);
+        AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
         player.RotateToVelocityGround();
 
         HandleLedgeStepMotion(player);
@@ -51,6 +54,8 @@ public class Locomotion : StateBase<PlayerController>
                 player.DisableCharControl();
                 player.Anim.SetTrigger("ToLedgeForward");
                 player.Anim.applyRootMotion = true;
+                player.StateMachine.GoToState<Climbing>();
+                return;
             }
             else
             {
@@ -59,7 +64,7 @@ public class Locomotion : StateBase<PlayerController>
         }
 
         if (Input.GetButtonDown("Jump") && !isRootMotion)
-            player.StateMachine.GoToState<Jumping>();;
+            player.StateMachine.GoToState<Jumping>();
     }
 
     private void LookForStepLedges(PlayerController player)

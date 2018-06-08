@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyController : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class EnemyController : MonoBehaviour
     private int health;
 
     private StateMachine<EnemyController> stateMachine;
+    private NavMeshAgent nav;
     private GameObject target;
     private Animator anim;
     private CharacterController charControl;
@@ -17,11 +19,15 @@ public class EnemyController : MonoBehaviour
 
     private void Start()
     {
+        health = startHealth;
         anim = GetComponent<Animator>();
+        nav = GetComponent<NavMeshAgent>();
         charControl = GetComponent<CharacterController>();
         target = GameObject.FindGameObjectWithTag("Player");
         stateMachine = new StateMachine<EnemyController>(this);
+
         SetUpStates();
+
         stateMachine.GoToState<AIIdle>();
     }
 
@@ -73,12 +79,24 @@ public class EnemyController : MonoBehaviour
     public int Health
     {
         get { return health; }
-        set { health = value; }
+        set {
+            health = value;
+            if (health <= 0)
+            {
+                health = 0;
+                Anim.SetBool("isDead", true);
+            }
+        }
     }
 
     public StateMachine<EnemyController> StateMachine
     {
         get { return stateMachine; }
+    }
+
+    public NavMeshAgent NavAgent
+    {
+        get { return nav; }
     }
 
     public Animator Anim

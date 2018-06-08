@@ -11,6 +11,7 @@ public class Combat : StateBase<PlayerController>
     public override void OnEnter(PlayerController player)
     {
         player.Anim.SetBool("isCombat", true);
+        player.Anim.applyRootMotion = false;
         player.Stats.ShowCanvas();
         player.pistolLHand.SetActive(true);
         player.pistolRHand.SetActive(true);
@@ -51,6 +52,9 @@ public class Combat : StateBase<PlayerController>
 
         player.MoveGrounded(moveSpeed);
 
+        if (Input.GetButtonDown("Jump"))
+            player.StateMachine.GoToState<Jumping>();
+
         if (target != null)
         {
             player.RotateToTarget(target.position);
@@ -70,6 +74,7 @@ public class Combat : StateBase<PlayerController>
         }
         else
         {
+            player.WaistTarget = null;
             player.camController.State = CameraState.Grounded;
             player.RotateToVelocityGround();
             player.Anim.SetBool("isTargetting", false);

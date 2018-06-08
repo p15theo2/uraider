@@ -16,8 +16,16 @@ public class AIEngaged : StateBase<EnemyController>
 
     public override void Update(EnemyController enemy)
     {
-        enemy.MoveGrounded(3f);
+        if (enemy.Health <= 0)
+        {
+            enemy.Anim.SetBool("isDead", true);
 
-        enemy.RotateToVelocityGround(10f);
+            enemy.NavAgent.enabled = false;
+
+            return;
+        }
+
+        enemy.Anim.SetFloat("Speed", enemy.NavAgent.speed);
+        enemy.NavAgent.SetDestination(enemy.Target.transform.position);
     }
 }

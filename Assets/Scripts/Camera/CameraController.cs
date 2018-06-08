@@ -61,6 +61,11 @@ public class CameraController : MonoBehaviour
         yRot += 1.0f * Input.GetAxis("Horizontal");
     }
 
+    public void PivotOnHead()
+    {
+        pivot.localPosition = Vector3.zero + Vector3.up * 1.7f;
+    }
+
     public void PivotOnTarget()
     {
         pivot.localPosition = Vector3.zero;

@@ -20,13 +20,13 @@ public class Jumping : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
-        player.Anim.applyRootMotion = false;
+        //player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isJumping", true);
 
         player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
 
         ledgesDetected = ledgeDetector.FindLedgeJump(player.transform.position,
-            player.transform.forward, 4.4f, 3.4f);
+            player.transform.forward, 5.6f, 3.4f);
     }
 
     public override void OnExit(PlayerController player)
@@ -45,6 +45,7 @@ public class Jumping : StateBase<PlayerController>
 
         if ((animState.IsName("RunJump") || animState.IsName("JumpUp")) && !hasJumped)
         {
+            player.Anim.applyRootMotion = false;
             float curSpeed = UMath.GetHorizontalMag(player.Velocity);
 
             if (ledgesDetected)
@@ -52,7 +53,7 @@ public class Jumping : StateBase<PlayerController>
                 grabType = ledgeDetector.GetGrabType(player.transform.position, player.transform.forward,
                 player.jumpZVel, player.jumpYVel, -player.gravity);
 
-                if (grabType == GrabType.Hand)
+                if (grabType == GrabType.Hand || ledgeDetector.WallType == LedgeType.Free)
                 {
                     Debug.Log("Hand me");
 
@@ -94,10 +95,10 @@ public class Jumping : StateBase<PlayerController>
 
             if (!ledgesDetected)  // can change in previous if - so NO else if
             {
-                float zVel = curSpeed > 1.2f ? player.jumpZVel
+                float zVel = curSpeed > player.walkSpeed ? player.jumpZVel
                     : curSpeed > 0.1f ? player.sJumpZVel
                     : 0.1f;
-                float yVel = curSpeed > 1.2f ? player.jumpYVel
+                float yVel = curSpeed > player.walkSpeed ? player.jumpYVel
                     : player.jumpYVel;
 
                 player.Velocity = player.transform.forward * zVel
@@ -113,7 +114,10 @@ public class Jumping : StateBase<PlayerController>
             if (ledgesDetected && Time.time - timeTracker >= GRAB_TIME)
             {
                 player.transform.position = grabPoint;
-                if (grabType == GrabType.Hand)
+
+                if (ledgeDetector.WallType == LedgeType.Free)
+                    player.StateMachine.GoToState<Freeclimb>();
+                else if (grabType == GrabType.Hand)
                     player.StateMachine.GoToState<Climbing>();
                 else
                     player.StateMachine.GoToState<Locomotion>();

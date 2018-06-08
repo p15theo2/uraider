@@ -10,10 +10,11 @@ public class LedgeDetector
     private float minHeight = 0.1f;
     private float hangRoom = 2.1f;
     private float maxAngle = 30f; // TODO: Implement use
-    private int rayCount = 12;
+    private int rayCount = 16;
 
     private Vector3 grabPoint;
     private Vector3 direction;
+    private LedgeType ledgeType;
 
     // Singleton to conserve memory and easy management
     private LedgeDetector()
@@ -35,7 +36,7 @@ public class LedgeDetector
 
     public bool CanClimbUp(Vector3 start, Vector3 dir)
     {
-        if (!FindLedgeJump(start + 2.12f * Vector3.up, dir, 1.0f, 1.8f)
+        if (!FindLedgeJump(start + 2.12f * Vector3.up, dir, 0.26f, 1.8f)
             && FindLedgeAtPoint(start + 1.8f * Vector3.up, dir, 0.5f, 0.5f))
             return true;
 
@@ -57,6 +58,12 @@ public class LedgeDetector
             {
                 grabPoint = new Vector3(hHit.point.x, vHit.point.y, hHit.point.z);
                 direction = -hHit.normal;
+
+                if (hHit.collider.CompareTag("Freeclimb"))
+                    ledgeType = LedgeType.Free;
+                else
+                    ledgeType = LedgeType.Normal;
+
                 return true;
             }
         }
@@ -142,6 +149,11 @@ public class LedgeDetector
         get { return direction; }
     }
 
+    public LedgeType WallType
+    {
+        get { return ledgeType; }
+    }
+
     public static LedgeDetector Instance
     {
         get
@@ -158,4 +170,10 @@ public enum GrabType
     Hand,
     Hip,
     Clear
+}
+
+public enum LedgeType
+{
+    Free,
+    Normal
 }
