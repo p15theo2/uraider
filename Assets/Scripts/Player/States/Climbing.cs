@@ -12,15 +12,17 @@ public class Climbing : StateBase<PlayerController>
     private bool isClimbingUp = false;
     private bool isFeetRoom = false;
     private float right = 0f;
-    private float grabForwardOffset = 0.1f;
+    private float grabForwardOffset = 0.11f;
     private float grabUpOffset = 2.1f; // 1.78
     private float bracedForwardOffset = 0.32f;
     private float bracedUpOffset = 1f;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
+    private PlayerController playController;
 
     public override void OnEnter(PlayerController player)
     {
+        playController = player;
         player.Velocity = Vector3.zero;
         player.MinimizeCollider();
         player.DisableCharControl();
@@ -61,13 +63,17 @@ public class Climbing : StateBase<PlayerController>
 
             if (animState.IsName("ClimbUp"))
             {
-                Vector3 matchPoint = ledgeDetector.GrabPoint + player.transform.forward * 0.18f;
+                Vector3 matchPoint = ledgeDetector.GrabPoint 
+                    + player.transform.forward * 0.18f;
                 player.Anim.MatchTarget(matchPoint, player.transform.rotation, AvatarTarget.Root,
-                    new MatchTargetWeightMask(Vector3.one, 1f), 0.03f, 0.9f);
+                    new MatchTargetWeightMask(Vector3.one, 1f), 0.03f, 1f);
             }
             else if (animState.IsName("Locomotion"))
+            {
+                //player.AnimWait(0.25f);
                 player.StateMachine.GoToState<Locomotion>();
-
+            }
+            
             return;
         }
 
@@ -120,6 +126,7 @@ public class Climbing : StateBase<PlayerController>
             player.Anim.SetTrigger("Handstand");
         else
             player.Anim.SetTrigger("ClimbUp");
+
         isClimbingUp = true;
     }
 

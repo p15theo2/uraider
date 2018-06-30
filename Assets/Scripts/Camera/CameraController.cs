@@ -17,6 +17,7 @@ public class CameraController : MonoBehaviour
 
     private Transform pivot;
     private Vector3 pivotOrigin;
+    private Vector3 targetPivotPosition;
     private Camera cam;
     private CameraState camState;
 
@@ -26,6 +27,7 @@ public class CameraController : MonoBehaviour
         cam = GetComponentInChildren<Camera>();
         pivot = cam.transform.parent;
         pivotOrigin = pivot.localPosition;
+        targetPivotPosition = pivot.localPosition;
     }
 
     private void LateUpdate()
@@ -48,12 +50,13 @@ public class CameraController : MonoBehaviour
             && Mathf.Abs(Input.GetAxis("Mouse X")) == 0f)
             DoExtraRotation();
 
-        pivot.rotation = Quaternion.Slerp(pivot.rotation, Quaternion.Euler(xRot, yRot, 0.0f), smoothing * Time.deltaTime);
+        pivot.rotation = /*Quaternion.Slerp(pivot.rotation,*/ Quaternion.Euler(xRot, yRot, 0.0f)/*, smoothing * Time.deltaTime)*/;
+        pivot.localPosition = Vector3.Lerp(pivot.localPosition, targetPivotPosition, Time.deltaTime * smoothing);
     }
 
     private void HandleMovement()
     {
-        transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime * smoothing);
+        transform.position = /*Vector3.Lerp(transform.position,*/ target.position/*, Time.deltaTime * smoothing)*/;
     }
 
     private void DoExtraRotation()
@@ -63,17 +66,17 @@ public class CameraController : MonoBehaviour
 
     public void PivotOnHead()
     {
-        pivot.localPosition = Vector3.zero + Vector3.up * 1.7f;
+        targetPivotPosition = Vector3.zero + Vector3.up * 1.7f;
     }
 
     public void PivotOnTarget()
     {
-        pivot.localPosition = Vector3.zero;
+        targetPivotPosition = Vector3.zero;
     }
 
     public void PivotOnPivot()
     {
-        pivot.localPosition = pivotOrigin;
+        targetPivotPosition = pivotOrigin;
     }
 
     public CameraState State

@@ -21,11 +21,11 @@ public static class UMath
 
     public static float PredictDisplacement(float speed, float time, float accel = 0)
     {
-        return (speed * time) + (0.5f * accel * Mathf.Pow(time, 2));
+        return (speed * time) + (0.5f * accel * Mathf.Pow(time, 2)); // s = ut + 1/2at^2
     }
 
     public static float TimeAtHorizontalPoint(float speed, float displace)
     {
-        return displace / speed;
+        return displace / speed;  // t = s/u
     }
 }

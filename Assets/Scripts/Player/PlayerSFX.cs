@@ -16,6 +16,7 @@ public class PlayerSFX : MonoBehaviour
     public AudioClip[] grabSounds;
     public AudioClip[] vaultSounds;
     public AudioClip[] screamSounds;
+    public AudioClip[] slapSounds;
 
     private void Start()
     {
@@ -45,6 +46,11 @@ public class PlayerSFX : MonoBehaviour
     public void PlayScreamSound()
     {
         PlayRandomSound(screamSounds, 1);
+    }
+
+    public void PlaySlapSounds()
+    {
+        PlayRandomSound(slapSounds, 0.25f);
     }
 
     private void PlayRandomSound(AudioClip[] sounds, float volume)

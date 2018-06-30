@@ -6,6 +6,7 @@ public class Locomotion : StateBase<PlayerController>
 {
     private bool isRootMotion = false;  // Used for root motion of step ups
     private bool waitingBool = false;  // avoids early reset of root mtn
+    private bool isJustEntered = false;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
@@ -21,8 +22,17 @@ public class Locomotion : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
-        if (!player.Grounded && !isRootMotion)
+        AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
+        AnimatorTransitionInfo transInfo = player.Anim.GetAnimatorTransitionInfo(0);
+
+        if (animState.IsName("FastLand"))
         {
+            player.MoveGrounded(0f);
+            return;
+        }
+        else if (!player.Grounded && !isRootMotion)
+        {
+            Debug.Log("no ground");
             player.StateMachine.GoToState<InAir>();
             return;
         }
@@ -33,13 +43,21 @@ public class Locomotion : StateBase<PlayerController>
         }
 
         float moveSpeed = Input.GetButton("Walk") ? player.walkSpeed
+            : Input.GetButton("Sprint") ? player.sprintSpeed
             : player.runSpeed;
 
         player.Anim.SetFloat("Forward", Input.GetAxisRaw("Vertical"));
 
-        player.MoveGrounded(moveSpeed);
-        AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
-        player.RotateToVelocityGround();
+        if (animState.IsName("Locomotion") || animState.IsName("RunJump_to_Run") || transInfo.IsName("FallMed -> RunJump_to_Run"))
+        {
+            player.MoveGrounded(moveSpeed);
+            player.RotateToVelocityGround();
+        }
+        else
+        {
+            player.MoveGrounded(0f);
+            player.Velocity = Vector3.down * 9.81f;
+        }
 
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);
@@ -124,7 +142,7 @@ public class Locomotion : StateBase<PlayerController>
             }
 
             player.Anim.MatchTarget(ledgeDetector.GrabPoint + (player.transform.forward * 0.1f),
-                    rotation, AvatarTarget.Root, new MatchTargetWeightMask(Vector3.one, 1f), 
+                    player.transform.rotation, AvatarTarget.Root, new MatchTargetWeightMask(Vector3.one, 1f), 
                     startTime, endTime);
 
             waitingBool = false;

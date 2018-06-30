@@ -7,6 +7,7 @@ public class Crouch : StateBase<PlayerController>
     public override void OnEnter(PlayerController player)
     {
         player.DisableCharControl();
+        player.camController.PivotOnTarget();
         player.Anim.applyRootMotion = true;
         player.Anim.SetBool("isCrouch", true);
         player.Velocity = Vector3.zero;
@@ -15,6 +16,7 @@ public class Crouch : StateBase<PlayerController>
     public override void OnExit(PlayerController player)
     {
         player.EnableCharControl();
+        player.camController.PivotOnPivot();
         player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isCrouch", false);
     }

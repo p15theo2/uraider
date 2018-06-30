@@ -9,6 +9,7 @@ public class Dead : StateBase<PlayerController>
         player.Anim.SetBool("isDead", true);
         player.Anim.applyRootMotion = true;
         player.Velocity = Vector3.zero;
+        player.camController.PivotOnTarget();
     }
 
     public override void OnExit(PlayerController player)
@@ -18,6 +19,6 @@ public class Dead : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
-        
+        Debug.Log("isDead");
     }
 }

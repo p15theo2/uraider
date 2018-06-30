@@ -35,12 +35,14 @@ public class Swimming : StateBase<PlayerController>
 
         if (!isTreading)
         {
+            Debug.Log("is not treading");
+
             if (Input.GetButton("Jump"))
                 SwimUp(player);
             else if (Input.GetButton("Crouch"))
                 SwimDown(player);
             else
-                player.MoveGrounded(player.swimSpeed, false);
+                player.MoveFree(player.swimSpeed);
 
             player.RotateToVelocity(4f);
 

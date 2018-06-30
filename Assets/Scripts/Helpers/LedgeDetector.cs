@@ -43,7 +43,7 @@ public class LedgeDetector
         return false;
     }
 
-    public bool FindLedgeAtPoint(Vector3 start, Vector3 dir, float maxDistance, float deltaHeight)
+    public bool FindLedgeAtPoint(Vector3 start, Vector3 dir, float maxDistance, float deltaHeight, bool ignoreFree = false)
     {
         RaycastHit hHit;
         Debug.DrawRay(start, dir * maxDistance, Color.red, 1.0f);
@@ -56,13 +56,27 @@ public class LedgeDetector
             Debug.DrawRay(start, Vector3.down * deltaHeight, Color.red, 1.0f);
             if (Physics.Raycast(start, Vector3.down, out vHit, deltaHeight))
             {
-                grabPoint = new Vector3(hHit.point.x, vHit.point.y, hHit.point.z);
-                direction = -hHit.normal;
+                start = new Vector3(hHit.point.x - dir.x * 0.1f,
+                    vHit.point.y + 0.1f,
+                    hHit.point.z - dir.z * 0.1f);
+                Debug.DrawRay(start, dir * (0.1f + minDepth), Color.green, 5.0f);
+                if (!Physics.Raycast(start, dir, 0.1f + minDepth))
+                {
+                    grabPoint = new Vector3(hHit.point.x, vHit.point.y, hHit.point.z);
+                    direction = -hHit.normal;
 
-                if (hHit.collider.CompareTag("Freeclimb"))
-                    ledgeType = LedgeType.Free;
-                else
                     ledgeType = LedgeType.Normal;
+
+                    return true;
+                }
+                
+            }
+            else if (hHit.collider.CompareTag("Freeclimb") && !ignoreFree)
+            {
+                ledgeType = LedgeType.Free;
+
+                grabPoint = new Vector3(hHit.point.x, start.y, hHit.point.z);
+                direction = -hHit.normal;
 
                 return true;
             }
@@ -95,7 +109,7 @@ public class LedgeDetector
         float distance = Mathf.Abs(UMath.GetHorizontalMag(grabPoint) - UMath.GetHorizontalMag(position));
         float timeAtX = UMath.TimeAtHorizontalPoint(uHorizontal, distance);
         float yAtTimeAtX = UMath.PredictDisplacement(uVertical, timeAtX, gravity);
-        float difference = yAtTimeAtX - grabPoint.y;
+        float difference = yAtTimeAtX - (grabPoint.y - position.y);
 
         if (difference <= -0.875f)
         {
@@ -103,8 +117,8 @@ public class LedgeDetector
             if (!Physics.Raycast(start, Vector3.down, hangRoom))
                 return GrabType.Hand;
         }
-        else if (difference <= 0f)
-            return GrabType.Hip;
+        /*else if (difference <= 0f)
+            return GrabType.Hip;*/
 
         return GrabType.Clear;
     }
