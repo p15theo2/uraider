@@ -2,15 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MonkeySwing : MonoBehaviour {
+public class MonkeySwing : StateBase<PlayerController>
+{
+    public override void OnEnter(PlayerController player)
+    {
+        player.Anim.applyRootMotion = true;
+        player.Anim.SetBool("isMonkey", true);
+        player.MinimizeCollider();
+        player.DisableCharControl();
+    }
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public override void OnExit(PlayerController player)
+    {
+        player.Anim.applyRootMotion = false;
+        player.Anim.SetBool("isMonkey", false);
+        player.MaximizeCollider();
+        player.EnableCharControl();
+    }
+
+    public override void Update(PlayerController player)
+    {
+        if (Input.GetButtonDown("Crouch"))
+        {
+            player.StateMachine.GoToState<InAir>();
+            return;
+        }
+
+        float moveSpeed = player.walkSpeed;
+
+        player.MoveGrounded(moveSpeed);
+        player.RotateToVelocityGround(4f);
+    }
 }

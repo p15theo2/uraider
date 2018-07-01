@@ -35,8 +35,6 @@ public class Swimming : StateBase<PlayerController>
 
         if (!isTreading)
         {
-            Debug.Log("is not treading");
-
             if (Input.GetButton("Jump"))
                 SwimUp(player);
             else if (Input.GetButton("Crouch"))

@@ -82,6 +82,8 @@ public class PlayerController : MonoBehaviour
         stateMachine.AddState(new Jumping());
         stateMachine.AddState(new Swimming());
         stateMachine.AddState(new Grabbing());
+        stateMachine.AddState(new MonkeySwing());
+        stateMachine.AddState(new HorPole());
         stateMachine.GoToState<Locomotion>();
     }
 
