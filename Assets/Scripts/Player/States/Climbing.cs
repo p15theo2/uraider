@@ -7,6 +7,7 @@ public class Climbing : StateBase<PlayerController>
     private bool ledgeLeft;
     private bool ledgeInnerLeft;
     private bool ledgeRight;
+    private bool ledgeInnerRight;
     private bool isOutCornering = false;
     private bool isInCornering = false;
     private bool isClimbingUp = false;
@@ -47,7 +48,8 @@ public class Climbing : StateBase<PlayerController>
 
         if (isInCornering || isOutCornering)
         {
-            if (animState.IsName("InCornerLeft") || animState.IsName("CornerLeft"))
+            if (animState.IsName("InCornerLeft") || animState.IsName("CornerLeft")
+                || animState.IsName("CornerRight") || animState.IsName("InCornerRight"))
             {
                 player.Anim.applyRootMotion = true;
             }
@@ -61,16 +63,8 @@ public class Climbing : StateBase<PlayerController>
         {
             player.Anim.SetFloat("Speed", 0f);
 
-            if (animState.IsName("ClimbUp"))
+            if (animState.IsName("Locomotion"))
             {
-                Vector3 matchPoint = ledgeDetector.GrabPoint 
-                    + player.transform.forward * 0.18f;
-                player.Anim.MatchTarget(matchPoint, player.transform.rotation, AvatarTarget.Root,
-                    new MatchTargetWeightMask(Vector3.one, 1f), 0.03f, 1f);
-            }
-            else if (animState.IsName("Locomotion"))
-            {
-                //player.AnimWait(0.25f);
                 player.StateMachine.GoToState<Locomotion>();
             }
             
@@ -101,15 +95,24 @@ public class Climbing : StateBase<PlayerController>
         start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
         ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 1.0f);
 
-        if (!ledgeLeft && right < -0.1f)
+        start = player.transform.position + (Vector3.up * 2f) + (player.transform.right * 0.24f);
+        ledgeRight = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
+
+        start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
+        ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.right, 0.34f, 1.0f);
+
+        if (right < -0.1f || right > 0.1f)
         {
-            player.Anim.applyRootMotion = false; // Stops player overshooting turn point
-            isOutCornering = true;
-        }
-        else if (ledgeInnerLeft && right < -0.1f)
-        {
-            player.Anim.applyRootMotion = false; // Stops player overshooting turn point
-            isInCornering = true;
+            if (!ledgeLeft || !ledgeRight)
+            {
+                player.Anim.applyRootMotion = false; // Stops player overshooting turn point
+                isOutCornering = true;
+            }
+            else if (ledgeInnerLeft || ledgeInnerRight)
+            {
+                player.Anim.applyRootMotion = false; // Stops player overshooting turn point
+                isInCornering = true;
+            }
         }
         else
         {
@@ -147,7 +150,7 @@ public class Climbing : StateBase<PlayerController>
         {
             player.transform.rotation = Quaternion.Slerp(player.transform.rotation,
                 Quaternion.LookRotation(-hit.normal, Vector3.up), 10f * Time.deltaTime);
-
+        
             player.transform.position = new Vector3(
                 hit.point.x 
                 - (player.transform.forward.x * (animState.IsName("BracedHang") ? bracedForwardOffset : grabForwardOffset)),

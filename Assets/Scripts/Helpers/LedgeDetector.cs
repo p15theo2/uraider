@@ -96,9 +96,14 @@ public class LedgeDetector
             Debug.DrawRay(start, dir * depth, Color.red, 1f);
             if (Physics.Raycast(start, dir, out hHit, depth))
             {
-                grabPoint = new Vector3(hHit.point.x, vHit.point.y, hHit.point.z);
-                direction = -hHit.normal;
-                return true;
+                if (Vector3.Dot(dir, vHit.normal) < 0.17f
+                    && Vector3.Dot(vHit.normal, hHit.normal) < 0.17f)
+                {
+                    grabPoint = new Vector3(hHit.point.x, vHit.point.y, hHit.point.z);
+                    direction = -hHit.normal;
+                    return true;
+                }
+                
             }
         }
         return false;

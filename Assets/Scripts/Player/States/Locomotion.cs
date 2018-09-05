@@ -25,14 +25,17 @@ public class Locomotion : StateBase<PlayerController>
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
         AnimatorTransitionInfo transInfo = player.Anim.GetAnimatorTransitionInfo(0);
 
-        if (animState.IsName("FastLand"))
+        if (player.isMovingAuto)
+        {
+            return;
+        }
+        else if (animState.IsName("FastLand"))
         {
             player.MoveGrounded(0f);
             return;
         }
-        else if (!player.Grounded && !isRootMotion)
+        else if (!player.Grounded && player.groundDistance > player.charControl.stepOffset && !isRootMotion)
         {
-            Debug.Log("no ground");
             player.StateMachine.GoToState<InAir>();
             return;
         }
@@ -52,11 +55,13 @@ public class Locomotion : StateBase<PlayerController>
         {
             player.MoveGrounded(moveSpeed);
             player.RotateToVelocityGround();
+            player.Anim.applyRootMotion = false;
         }
         else
         {
             player.MoveGrounded(0f);
-            player.Velocity = Vector3.down * 9.81f;
+            player.Velocity = Vector3.down * player.gravity;
+            player.Anim.applyRootMotion = true;
         }
 
         HandleLedgeStepMotion(player);

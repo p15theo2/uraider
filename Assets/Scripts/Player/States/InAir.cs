@@ -17,6 +17,8 @@ public class InAir : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
+        Debug.Log("inair");
+
         player.ApplyGravity(player.gravity);
 
         player.Anim.SetFloat("YSpeed", player.Velocity.y);

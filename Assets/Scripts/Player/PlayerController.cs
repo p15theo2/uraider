@@ -9,6 +9,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public bool autoLedgeTarget = true;
+    public float grabTime = 0.7f;
     [Header("Movement Speeds")]
     public float sprintSpeed = 4f;
     public float runSpeed = 3.36f;
@@ -23,7 +24,7 @@ public class PlayerController : MonoBehaviour
     [Header("IK Settings")]
     public float footYOffset = 0.1f;
     [Header("Offsets")]
-    public float grabForwardOffset = 0.1f;
+    public float grabForwardOffset = 0.11f;
     public float grabUpOffset = 2.1f; //1.78
 
     [Header("References")]
@@ -40,13 +41,17 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded = true;
     private bool isFootIK = false;
     private bool holdRotation = false;
+    [HideInInspector]
     public float groundDistance = 0f;
+    [HideInInspector]
+    public bool isMovingAuto = false;
     private float targetAngle = 0f;
     private Vector3 posLastFrame = Vector3.zero;
     private float calculatedSpeed = 0f;
 
     private StateMachine<PlayerController> stateMachine;
-    private CharacterController charControl;
+    [HideInInspector]
+    public CharacterController charControl;
     private Transform cam;
     private Animator anim;
     private PlayerStats playerStats;
@@ -107,22 +112,49 @@ public class PlayerController : MonoBehaviour
 
         RaycastHit hit;
         groundDistance = 2f;
-        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down, out hit, groundDistance)
+
+        Vector3 centerStart = transform.position + Vector3.up * 0.2f;
+        List<Vector3> sideChecks = new List<Vector3>();
+        sideChecks.Add(centerStart + transform.forward * charControl.radius);
+        sideChecks.Add(centerStart - transform.forward * charControl.radius);
+        sideChecks.Add(centerStart + transform.right * charControl.radius);
+        sideChecks.Add(centerStart - transform.right * charControl.radius);
+
+        if ((Physics.Raycast(centerStart, Vector3.down, out hit, groundDistance)
             && !hit.collider.CompareTag("Water"))
+            /*|| (Physics.Raycast(forwardStart, Vector3.down, out hit, groundDistance)
+            && !hit.collider.CompareTag("Water"))
+            || (Physics.Raycast(backStart, Vector3.down, out hit, groundDistance)
+            && !hit.collider.CompareTag("Water"))
+            || (Physics.Raycast(rightStart, Vector3.down, out hit, groundDistance)
+            && !hit.collider.CompareTag("Water"))
+            || (Physics.Raycast(leftStart, Vector3.down, out hit, groundDistance)
+            && !hit.collider.CompareTag("Water"))*/)
         {
             groundDistance = transform.position.y - hit.point.y;
+        }
+        else if (stateMachine.IsInState<Locomotion>())
+        {
+            int hitCount = 0;
+
+            foreach(Vector3 v in sideChecks)
+            {
+                if (Physics.Raycast(v, Vector3.down, out hit, groundDistance))
+                    hitCount++;
+            }
+
+            if (hitCount == 1)
+                velocity = Mathf.Max(walkSpeed, UMath.GetHorizontalMag(velocity)) * transform.forward;
         }
 
         anim.SetFloat("groundDistance", groundDistance);
     }
 
-    float curWeight = 0f;
-
     private void OnAnimatorIK(int layerIndex)
     {
         if (isFootIK && UMath.GetHorizontalMag(velocity) < 0.1f)
         {
-            curWeight = Mathf.Lerp(curWeight, 1f, Time.deltaTime * 0.5f);
+            float curWeight = 1f;
             RaycastHit hit;
             if (Physics.Raycast(leftFootIK.position, Vector3.down, out hit, 0.5f))
             {
@@ -138,10 +170,6 @@ public class PlayerController : MonoBehaviour
                 anim.SetIKRotation(AvatarIKGoal.RightFoot, Quaternion.LookRotation(transform.forward, hit.normal));
                 anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, curWeight);
             }
-        }
-        else
-        {
-            curWeight = 0f;
         }
     }
 
@@ -164,6 +192,11 @@ public class PlayerController : MonoBehaviour
         StartCoroutine(StopDrop(seconds));
     }
 
+    public void MoveWait(Vector3 point, Quaternion rotation, float tRate = 1f, float rRate = 1f)
+    {
+        StartCoroutine(MoveTo(point, rotation, tRate, rRate));
+    }
+
     private IEnumerator StopDrop(float secs)
     {
         float startTime = Time.time;
@@ -172,6 +205,53 @@ public class PlayerController : MonoBehaviour
         {
             yield return null;
         }
+        anim.SetBool("isWaiting", false);
+    }
+
+    private IEnumerator MoveTo(Vector3 point, Quaternion rotation, float tRate = 1f, float rRate = 1f)
+    {
+        float distance = Vector3.Distance(transform.position, point);
+        float difference = Quaternion.Angle(transform.rotation, rotation);
+        Vector3 direction = (point - transform.position).normalized;
+        bool isNotOk = true;
+
+        isMovingAuto = true;
+        anim.SetBool("isWaiting", true);
+
+        while (isNotOk)
+        {
+            isNotOk = false;
+
+            if (Mathf.Abs(distance) > 0.1f)
+            {
+                isNotOk = true;
+                direction = (point - transform.position).normalized;
+                velocity.y = 0f;
+                velocity = Vector3.Lerp(velocity, direction * walkSpeed * tRate, 10f * Time.deltaTime);
+                distance = Vector3.Distance(transform.position, point);
+                anim.SetFloat("Speed", velocity.magnitude);
+                Debug.Log(velocity);
+                Debug.Log(anim.applyRootMotion);
+            }
+            else
+            {
+                velocity = Vector3.zero;
+            }
+
+            if (Mathf.Abs(difference) > 2f)
+            {
+                isNotOk = true;
+                transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rRate * Time.deltaTime);
+                difference = Quaternion.Angle(transform.rotation, rotation);
+            }
+
+            yield return null;
+        }
+
+        transform.position = point;
+        transform.rotation = rotation;
+
+        isMovingAuto = false;
         anim.SetBool("isWaiting", false);
     }
 
@@ -223,7 +303,7 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
 
-        if (pushDown && groundDistance < 0.4f)
+        if (pushDown && groundDistance < charControl.stepOffset)
             velocity.y = -gravity;  // so charControl is grounded consistently
     }
 
@@ -291,9 +371,9 @@ public class PlayerController : MonoBehaviour
         pistols[0].Fire();
     }
 
-    public void MinimizeCollider()
+    public void MinimizeCollider(float size = 0f)
     {
-        charControl.radius = 0f;
+        charControl.radius = size;
     }
 
     public void MaximizeCollider()

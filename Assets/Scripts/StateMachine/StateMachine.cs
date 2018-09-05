@@ -24,6 +24,11 @@ public class StateMachine<T>
         possibleStates.Remove(state);
     }
 
+    public bool IsInState<TState>()
+    {
+        return currentState is TState;
+    }
+
     public void GoToState<TState>()
     {
         foreach (StateBase<T> state in possibleStates)

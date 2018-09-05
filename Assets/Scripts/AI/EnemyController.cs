@@ -6,6 +6,7 @@ using UnityEngine.AI;
 public class EnemyController : MonoBehaviour
 {
     public int startHealth = 100;
+    public float maxAimDistance = 10f;
     public float interpolationRate = 8f;
 
     private int health;
@@ -34,6 +35,7 @@ public class EnemyController : MonoBehaviour
     private void SetUpStates()
     {
         stateMachine.AddState(new AIIdle());
+        stateMachine.AddState(new AIChase());
         stateMachine.AddState(new AIEngaged());
     }
 

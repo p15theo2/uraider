@@ -22,8 +22,8 @@ public class Jumping : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
-        //player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isJumping", true);
+        //player.Anim.applyRootMotion = true;
         lastChance = Random.Range(0f, 1f);
         player.Anim.SetFloat("lastChance", lastChance);
         player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
@@ -33,14 +33,11 @@ public class Jumping : StateBase<PlayerController>
             ledgesDetected = ledgeDetector.FindLedgeJump(player.transform.position,
                 player.transform.forward, 5.6f, 3.4f);
         }
-        else
-        {
-            ledgesDetected = false;
-        }
     }
 
     public override void OnExit(PlayerController player)
     {
+        player.Anim.SetBool("isDive", false);
         hasJumped = false;
         isGrabbing = false;
         ledgesDetected = false;
@@ -56,7 +53,13 @@ public class Jumping : StateBase<PlayerController>
         AnimatorTransitionInfo transInfo = player.Anim.GetAnimatorTransitionInfo(0);
 
         player.Anim.SetFloat("YSpeed", player.Velocity.y);
-        player.Anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(player.TargetMovementVector(player.runSpeed)));
+        float targetSpeed = UMath.GetHorizontalMag(player.TargetMovementVector(player.runSpeed));
+        player.Anim.SetFloat("TargetSpeed", targetSpeed);
+
+        if (Input.GetButtonDown("Sprint"))
+        {
+            player.Anim.SetBool("isDive", true);
+        }
 
         if (!player.autoLedgeTarget && Input.GetButton("Action"))
         {
@@ -68,7 +71,9 @@ public class Jumping : StateBase<PlayerController>
             player.Velocity = Vector3.zero;
         }
 
-        if ((animState.IsName("RunJump") || animState.IsName("JumpUp") || animState.IsName("SprintJump")) && !hasJumped)
+        if ((animState.IsName("RunJump") || animState.IsName("JumpUp") 
+            || animState.IsName("SprintJump") || animState.IsName("Dive")
+            || animState.IsName("StandJump")) && !hasJumped)
         {
             player.Anim.applyRootMotion = false;
             float curSpeed = UMath.GetHorizontalMag(player.Velocity);
@@ -81,13 +86,13 @@ public class Jumping : StateBase<PlayerController>
                 if (grabType == GrabType.Hand || ledgeDetector.WallType == LedgeType.Free)
                 {
                     grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * grabForwardOffset),
-                        ledgeDetector.GrabPoint.y - grabUpOffset,
+                        ledgeDetector.GrabPoint.y - 2.1f,
                         ledgeDetector.GrabPoint.z - (player.transform.forward.z * grabForwardOffset));
 
                     player.Velocity = UMath.VelocityToReachPoint(player.transform.position,
                         grabPoint,
                         player.gravity,
-                        GRAB_TIME);
+                        player.grabTime);
 
                     timeTracker = Time.time;
 
@@ -101,13 +106,8 @@ public class Jumping : StateBase<PlayerController>
 
             if (!ledgesDetected)  // can change in previous if - so NO else if
             {
-                /*float zVel = curSpeed > player.walkSpeed ? player.jumpZVel
-                    : curSpeed > 0.1f ? player.sJumpZVel
-                    : 0.1f;
-                float yVel = curSpeed > player.walkSpeed ? player.jumpYVel
-                    : player.jumpYVel;*/
-
                 float zVel = curSpeed > 0.1f ? curSpeed + player.jumpZBoost
+                    : targetSpeed > 0.1f ? 3f
                     : 0.1f;
                 float yVel = player.jumpYVel;
 
@@ -138,40 +138,23 @@ public class Jumping : StateBase<PlayerController>
                 else
                     player.StateMachine.GoToState<Locomotion>();
             }
-            else if (player.Grounded && player.groundDistance < 0.1f && !ledgesDetected)
+            else if (player.Grounded && /*player.groundDistance < 0.1f && */!ledgesDetected)
             {
                 player.StateMachine.GoToState<Locomotion>();
             }
-            else if (isGrabbing)
+            /*else if (player.Grounded)
             {
-                /*if (player.Velocity.y < -10f)
+                RaycastHit hit;
+                if (Physics.Raycast(player.transform.position, Vector3.down, out hit, 1f))
                 {
-                    isGrabbing = false;
-                    return;
+                    Vector3 direction = Vector3.Cross(hit.normal, player.transform.right);
+                    float angle = Vector3.Angle(-player.transform.forward, direction) * Mathf.Deg2Rad;
+                    Vector3 down = Vector3.down * player.gravity * direction.magnitude * Mathf.Sin(angle);
+                    Vector3 back = -player.transform.forward * 1f * direction.magnitude * Mathf.Cos(angle);
+                    player.Velocity = direction * player.Velocity.magnitude;
                 }
-
-                if (ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * grabUpOffset,
-                    player.transform.forward,
-                    0.3f,
-                    0.2f))
-                {
-                    grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * grabForwardOffset),
-                        ledgeDetector.GrabPoint.y - grabUpOffset,
-                        ledgeDetector.GrabPoint.z - (player.transform.forward.z * grabForwardOffset));
-
-                    grabType = ledgeDetector.GetGrabType(player.transform.position, player.transform.forward,
-                        player.jumpZVel, player.jumpYVel, -player.gravity);
-
-                    player.transform.position = grabPoint;
-
-                    if (ledgeDetector.WallType == LedgeType.Free)
-                        player.StateMachine.GoToState<Freeclimb>();
-                    else if (grabType == GrabType.Hand)
-                        player.StateMachine.GoToState<Climbing>();
-                    else
-                        player.StateMachine.GoToState<Locomotion>();
-                }*/
-            }
+                //player.Velocity = Vector3.down * player.gravity;
+            }*/
         }
     }
 }

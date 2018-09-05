@@ -9,6 +9,7 @@ class Freeclimb : StateBase<PlayerController>
     private bool isClimbingUp = false;
     private bool isSlantClimb = false;
     private bool isTransition = false;
+    private bool isGettingOff = false;
     private float forwardOffset = 0.5f;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
@@ -28,6 +29,7 @@ class Freeclimb : StateBase<PlayerController>
         player.EnableCharControl();
         isClimbingUp = false;
         isSlantClimb = false;
+        isGettingOff = false;
         player.Anim.applyRootMotion = false;
         player.Anim.SetBool("isFreeclimb", false);
     }
@@ -35,6 +37,22 @@ class Freeclimb : StateBase<PlayerController>
     public override void Update(PlayerController player)
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
+
+        if (player.groundDistance <= 1f)
+        {
+            if (!isGettingOff)
+            {
+                player.Anim.SetBool("isDismounting", true);
+                //player.Anim.applyRootMotion = false;
+                isGettingOff = true;
+            }
+            /*else if (animState.IsName("DismountFreeclimb"))
+                player.Anim.applyRootMotion = true;*/
+            else if (animState.IsName("Locomotion"))
+                player.StateMachine.GoToState<Locomotion>();
+
+            return;
+        }
 
         if (isTransition)
         {
@@ -68,7 +86,7 @@ class Freeclimb : StateBase<PlayerController>
         RaycastHit hitTop;
         Vector3 slantCheckStart = player.transform.position + 1.5f * Vector3.up;
         Vector3 flatCheckStart = player.transform.position + 2f * Vector3.up - player.transform.forward * 0.2f;
-        if (ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * 1.2f,
+        if (ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * 1.4f,
             player.transform.forward,
             0.6f,
             0.2f, true))

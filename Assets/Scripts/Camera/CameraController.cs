@@ -7,7 +7,8 @@ public class CameraController : MonoBehaviour
     public float rotationSpeed = 120.0f;
     public float yMax = 80.0f;
     public float yMin = -45.0f;
-    public float smoothing = 15.0f;
+    public float rotationSmoothing = 20f;
+    public float translationSmoothing = 14f;
     public bool LAUTurning = true;
 
     public Transform target;
@@ -50,13 +51,13 @@ public class CameraController : MonoBehaviour
             && Mathf.Abs(Input.GetAxis("Mouse X")) == 0f)
             DoExtraRotation();
 
-        pivot.rotation = /*Quaternion.Slerp(pivot.rotation,*/ Quaternion.Euler(xRot, yRot, 0.0f)/*, smoothing * Time.deltaTime)*/;
-        pivot.localPosition = Vector3.Lerp(pivot.localPosition, targetPivotPosition, Time.deltaTime * smoothing);
+        pivot.rotation = Quaternion.Slerp(pivot.rotation, Quaternion.Euler(xRot, yRot, 0.0f), rotationSmoothing * Time.deltaTime);
+        pivot.localPosition = Vector3.Lerp(pivot.localPosition, targetPivotPosition, Time.deltaTime * 2f);
     }
 
     private void HandleMovement()
     {
-        transform.position = /*Vector3.Lerp(transform.position,*/ target.position/*, Time.deltaTime * smoothing)*/;
+        transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime * translationSmoothing);
     }
 
     private void DoExtraRotation()

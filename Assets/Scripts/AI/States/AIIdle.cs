@@ -17,6 +17,6 @@ public class AIIdle : StateBase<EnemyController>
     public override void Update(EnemyController enemy)
     {
         if (enemy.Health != enemy.startHealth)
-            enemy.StateMachine.GoToState<AIEngaged>();
+            enemy.StateMachine.GoToState<AIChase>();
     }
 }
