@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -35,10 +35,10 @@ MonoBehaviour:
       fxaaSettings:
         preset: 2
       taaSettings:
-        jitterSpread: 0.6
-        sharpen: 0.3
+        jitterSpread: 0.8
+        sharpen: 0.4
         stationaryBlending: 0.95
-        motionBlending: 0.85
+        motionBlending: 0.9
   ambientOcclusion:
     m_Enabled: 1
     m_Settings:
@@ -97,13 +97,13 @@ MonoBehaviour:
       logMin: -8
       logMax: 4
   bloom:
-    m_Enabled: 0
+    m_Enabled: 1
     m_Settings:
       bloom:
         intensity: 0.2
-        threshold: 1.1
-        softKnee: 0.224
-        radius: 2.9
+        threshold: 1.6
+        softKnee: 0.3
+        radius: 1
         antiFlicker: 1
       lensDirt:
         texture: {fileID: 0}
@@ -112,7 +112,7 @@ MonoBehaviour:
     m_Enabled: 0
     m_Settings:
       tonemapping:
-        tonemapper: 2
+        tonemapper: 1
         neutralBlackIn: 0.02
         neutralWhiteIn: 10
         neutralBlackOut: -0

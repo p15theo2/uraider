@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
     public float footYOffset = 0.1f;
     [Header("Offsets")]
     public float grabForwardOffset = 0.11f;
-    public float grabUpOffset = 2.1f; //1.78
+    public float grabUpOffset = 1.56f;
 
     [Header("References")]
     public CameraController camController;
@@ -87,6 +87,7 @@ public class PlayerController : MonoBehaviour
         stateMachine.AddState(new Jumping());
         stateMachine.AddState(new Swimming());
         stateMachine.AddState(new Grabbing());
+        stateMachine.AddState(new AutoGrabbing());
         stateMachine.AddState(new MonkeySwing());
         stateMachine.AddState(new HorPole());
         stateMachine.GoToState<Locomotion>();

@@ -7,8 +7,8 @@ public class CameraController : MonoBehaviour
     public float rotationSpeed = 120.0f;
     public float yMax = 80.0f;
     public float yMin = -45.0f;
-    public float rotationSmoothing = 20f;
-    public float translationSmoothing = 14f;
+    public float rotationSmoothing = 30f;
+    public float translationSmoothing = 30f;
     public bool LAUTurning = true;
 
     public Transform target;

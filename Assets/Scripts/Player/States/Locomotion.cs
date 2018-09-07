@@ -7,6 +7,7 @@ public class Locomotion : StateBase<PlayerController>
     private bool isRootMotion = false;  // Used for root motion of step ups
     private bool waitingBool = false;  // avoids early reset of root mtn
     private bool isJustEntered = false;
+    private bool isTransitioning = false;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
@@ -18,6 +19,7 @@ public class Locomotion : StateBase<PlayerController>
     public override void OnExit(PlayerController player)
     {
         isRootMotion = false;
+        isTransitioning = false;
     }
 
     public override void Update(PlayerController player)
@@ -25,8 +27,12 @@ public class Locomotion : StateBase<PlayerController>
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
         AnimatorTransitionInfo transInfo = player.Anim.GetAnimatorTransitionInfo(0);
 
-        if (player.isMovingAuto)
+        if (player.isMovingAuto || isTransitioning)
         {
+            if (animState.IsName("HangLoop"))
+            {
+                player.StateMachine.GoToState<Climbing>();
+            }
             return;
         }
         else if (animState.IsName("FastLand"))
@@ -70,14 +76,17 @@ public class Locomotion : StateBase<PlayerController>
         if (Input.GetButtonDown("Crouch"))
         {
             Vector3 start = player.transform.position
-                + player.transform.forward * 0.2f
-                + Vector3.down * 0.2f;
-            if (ledgeDetector.FindLedgeAtPoint(start, -player.transform.forward, 0.4f, 0.4f))
+                + player.transform.forward * 0.4f
+                + Vector3.down * 0.1f;
+            if (ledgeDetector.FindLedgeAtPoint(start, -player.transform.forward, 0.5f, 0.2f))
             {
                 player.DisableCharControl();
                 player.Anim.SetTrigger("ToLedgeForward");
                 player.Anim.applyRootMotion = true;
-                player.StateMachine.GoToState<Climbing>();
+                player.MoveWait(ledgeDetector.GrabPoint - player.transform.forward * 0.2f,
+                    Quaternion.LookRotation(-ledgeDetector.Direction,Vector3.up));
+                //player.StateMachine.GoToState<Climbing>();
+                isTransitioning = true;
                 return;
             }
             else

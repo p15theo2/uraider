@@ -9,15 +9,22 @@ class Grabbing : StateBase<PlayerController>
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
     private Vector3 grabPoint;
+    private Vector3 lastPos;
     private GrabType grabType;
 
     public override void OnEnter(PlayerController player)
     {
+        player.MinimizeCollider(0.01f);
+
+        lastPos = player.transform.position;
+
         player.Anim.SetBool("isGrabbing", true);
     }
 
     public override void OnExit(PlayerController player)
     {
+        player.MaximizeCollider();
+
         player.Anim.SetBool("isGrabbing", false);
     }
 
@@ -31,25 +38,23 @@ class Grabbing : StateBase<PlayerController>
             return;
         }
 
-        /*if (ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * 1.7f,
-            player.transform.forward,
-            0.21f,
-            0.2f))*/
         RaycastHit hit;
-        /*Vector3 startPos = new Vector3(player.transform.position.x,
-            player.palmLocation.position.y,
-            player.transform.position.z);*/
         Vector3 startPos = new Vector3(player.transform.position.x,
-            player.transform.position.y + 1.72f,
+            player.transform.position.y + player.grabUpOffset, // 1.72
             player.transform.position.z);
+
+        // If Lara's position changes too fast, can miss ledges
+        float deltaH = Mathf.Max(Mathf.Abs(player.transform.position.y - lastPos.y), 0.12f);
+
+        // Checks if there is a ledge to grab
         if (ledgeDetector.FindLedgeAtPoint(startPos,
         player.transform.forward,
-        0.24f,
-        0.06f))
+        0.25f,
+        deltaH))
         {
-            grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * /*player.grabForwardOffset*/ 0.11f),
-                ledgeDetector.GrabPoint.y - /*player.grabUpOffset*/ /*1.7f*/ 1.56f,
-                ledgeDetector.GrabPoint.z - (player.transform.forward.z * /*player.grabForwardOffset*/ 0.11f));
+            grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * player.grabForwardOffset),
+                ledgeDetector.GrabPoint.y - player.grabUpOffset,
+                ledgeDetector.GrabPoint.z - (player.transform.forward.z * player.grabForwardOffset));
 
             grabType = ledgeDetector.GetGrabType(player.transform.position, player.transform.forward,
                 player.jumpZBoost, player.jumpYVel, -player.gravity);
@@ -64,7 +69,7 @@ class Grabbing : StateBase<PlayerController>
             else
                 player.StateMachine.GoToState<Locomotion>();
         }
-        else if (Physics.Raycast(startPos, Vector3.up, out hit, 0.02f))
+        else if (Physics.Raycast(startPos, Vector3.up, out hit, 0.5f))
         {
             if (hit.collider.CompareTag("MonkeySwing"))
             {
@@ -81,6 +86,8 @@ class Grabbing : StateBase<PlayerController>
         }
         else if (player.Grounded)
             player.StateMachine.GoToState<Locomotion>();
+
+        lastPos = player.transform.position;
     }
 }
 

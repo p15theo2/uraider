@@ -1639,13 +1639,16 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: ToLedgeForward
     m_EventTreshold: 0
+  - m_ConditionMode: 2
+    m_ConditionEvent: isWaiting
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1102379546454960046}
   m_Solo: 0
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0.1
   m_TransitionOffset: 0
   m_ExitTime: 0.82558143
   m_HasExitTime: 0
@@ -4303,11 +4306,11 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0.1
   m_TransitionOffset: 0
-  m_ExitTime: 0.8770492
+  m_ExitTime: 0.9
   m_HasExitTime: 1
-  m_HasFixedDuration: 1
+  m_HasFixedDuration: 0
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
   m_CanTransitionToSelf: 1
@@ -4846,7 +4849,7 @@ AnimatorStateTransition:
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1102909901121085352}
   m_Solo: 0
-  m_Mute: 0
+  m_Mute: 1
   m_IsExit: 0
   serializedVersion: 3
   m_TransitionDuration: 0.1
@@ -6073,7 +6076,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Crawl_F
-  m_Speed: 1.2
+  m_Speed: 1.26
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 1101535120890534790}
@@ -6812,7 +6815,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Crawl_to_Crouch
-  m_Speed: 1
+  m_Speed: 1.26
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 1101999919718386926}
@@ -6942,7 +6945,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Dive
-  m_Speed: 1
+  m_Speed: 1.2
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 1101029483043173914}
@@ -7047,7 +7050,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Idle_to_Crouch
-  m_Speed: 1
+  m_Speed: 1.26
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 1101231300972340110}
@@ -7151,7 +7154,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Still_Compress_Stand
-  m_Speed: 0.75
+  m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 1101680050230362232}
@@ -7282,7 +7285,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Crouch_to_Crawl
-  m_Speed: 1
+  m_Speed: 1.26
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 1101553808692166274}
@@ -7394,7 +7397,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Crouch_to_Idle
-  m_Speed: 1
+  m_Speed: 1.26
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 1101678899253005622}
@@ -8973,7 +8976,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 1102527608254881922}
-    m_Position: {x: 108, y: 228, z: 0}
+    m_Position: {x: 108, y: 240, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 1102921336211451740}
     m_Position: {x: 504, y: 276, z: 0}
@@ -8982,7 +8985,7 @@ AnimatorStateMachine:
     m_Position: {x: 504, y: 360, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 1102828930593090534}
-    m_Position: {x: 480, y: 564, z: 0}
+    m_Position: {x: 516, y: 576, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 1102680003102159108}
     m_Position: {x: 780, y: -24, z: 0}

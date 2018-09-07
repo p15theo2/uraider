@@ -85,18 +85,8 @@ public class Jumping : StateBase<PlayerController>
 
                 if (grabType == GrabType.Hand || ledgeDetector.WallType == LedgeType.Free)
                 {
-                    grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * grabForwardOffset),
-                        ledgeDetector.GrabPoint.y - 2.1f,
-                        ledgeDetector.GrabPoint.z - (player.transform.forward.z * grabForwardOffset));
-
-                    player.Velocity = UMath.VelocityToReachPoint(player.transform.position,
-                        grabPoint,
-                        player.gravity,
-                        player.grabTime);
-
-                    timeTracker = Time.time;
-
-                    player.Anim.SetBool("isGrabbing", true);
+                    player.StateMachine.GoToState<AutoGrabbing>();
+                    return;
                 }
                 else
                 {
@@ -127,34 +117,8 @@ public class Jumping : StateBase<PlayerController>
 
             player.ApplyGravity(player.gravity);
 
-            if (ledgesDetected && Time.time - timeTracker >= GRAB_TIME)
-            {
-                player.transform.position = grabPoint;
-
-                if (ledgeDetector.WallType == LedgeType.Free)
-                    player.StateMachine.GoToState<Freeclimb>();
-                else if (grabType == GrabType.Hand)
-                    player.StateMachine.GoToState<Climbing>();
-                else
-                    player.StateMachine.GoToState<Locomotion>();
-            }
-            else if (player.Grounded && /*player.groundDistance < 0.1f && */!ledgesDetected)
-            {
+            if (player.Grounded)
                 player.StateMachine.GoToState<Locomotion>();
-            }
-            /*else if (player.Grounded)
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(player.transform.position, Vector3.down, out hit, 1f))
-                {
-                    Vector3 direction = Vector3.Cross(hit.normal, player.transform.right);
-                    float angle = Vector3.Angle(-player.transform.forward, direction) * Mathf.Deg2Rad;
-                    Vector3 down = Vector3.down * player.gravity * direction.magnitude * Mathf.Sin(angle);
-                    Vector3 back = -player.transform.forward * 1f * direction.magnitude * Mathf.Cos(angle);
-                    player.Velocity = direction * player.Velocity.magnitude;
-                }
-                //player.Velocity = Vector3.down * player.gravity;
-            }*/
         }
     }
 }

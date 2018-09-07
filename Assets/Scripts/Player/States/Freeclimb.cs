@@ -38,22 +38,6 @@ class Freeclimb : StateBase<PlayerController>
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
-        if (player.groundDistance <= 1f)
-        {
-            if (!isGettingOff)
-            {
-                player.Anim.SetBool("isDismounting", true);
-                //player.Anim.applyRootMotion = false;
-                isGettingOff = true;
-            }
-            /*else if (animState.IsName("DismountFreeclimb"))
-                player.Anim.applyRootMotion = true;*/
-            else if (animState.IsName("Locomotion"))
-                player.StateMachine.GoToState<Locomotion>();
-
-            return;
-        }
-
         if (isTransition)
         {
             if (animState.IsName("Freeclimb_to_Slant") || animState.IsName("Slantclimb_to_Freeclimb")
@@ -72,6 +56,7 @@ class Freeclimb : StateBase<PlayerController>
         {
             if (animState.IsName("Locomotion"))
             {
+                player.Anim.SetBool("isClimbingUp", false);
                 player.StateMachine.GoToState<Locomotion>();
             }
             return;
@@ -124,6 +109,9 @@ class Freeclimb : StateBase<PlayerController>
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
+        if (player.groundDistance <= 0.5f)
+            vertical = Mathf.Clamp01(vertical);
+
         player.Anim.SetFloat("Forward", vertical);
         player.Anim.SetFloat("Right", horizontal);
 
@@ -138,6 +126,21 @@ class Freeclimb : StateBase<PlayerController>
 
             player.transform.position = newPos;
             player.transform.rotation = Quaternion.LookRotation(-hit.normal, Vector3.up);
+        }
+
+        if (player.groundDistance <= 1f)
+        {
+            /*if (!isGettingOff)
+            {
+                player.Anim.SetBool("isDismounting", true);
+                //player.Anim.applyRootMotion = false;
+                isGettingOff = true;
+            }
+            else if (animState.IsName("Locomotion"))
+                player.StateMachine.GoToState<Locomotion>();
+            
+            return;*/
+
         }
     }
 }
