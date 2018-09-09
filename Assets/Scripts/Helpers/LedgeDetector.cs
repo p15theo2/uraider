@@ -66,7 +66,7 @@ public class LedgeDetector
                     direction = -hHit.normal;
 
                     ledgeType = LedgeType.Normal;
-
+                    Debug.Log("returning true m8");
                     return true;
                 }
                 

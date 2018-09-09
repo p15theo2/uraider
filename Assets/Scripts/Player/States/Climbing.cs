@@ -15,15 +15,11 @@ public class Climbing : StateBase<PlayerController>
     private float right = 0f;
     private float grabForwardOffset = 0.11f;
     private float grabUpOffset = 2.1f; // 1.78
-    private float bracedForwardOffset = 0.32f;
-    private float bracedUpOffset = 1f;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
-    private PlayerController playController;
 
     public override void OnEnter(PlayerController player)
     {
-        playController = player;
         player.Velocity = Vector3.zero;
         player.MinimizeCollider();
         player.DisableCharControl();
@@ -89,29 +85,42 @@ public class Climbing : StateBase<PlayerController>
 
     private void HandleCorners(PlayerController player)
     {
-        Vector3 start = player.transform.position + (Vector3.up * 2f) - (player.transform.right * 0.24f);
-        ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
+        Vector3 start = player.transform.position + (Vector3.up * 1.86f) - (player.transform.right * 0.24f);
+        ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 0.2f, 0.2f);
 
-        start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
-        ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 1.0f);
+        start = player.transform.position + (Vector3.up * 1.86f) - (player.transform.forward * 0.15f);
+        ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 0.2f);
 
-        start = player.transform.position + (Vector3.up * 2f) + (player.transform.right * 0.24f);
-        ledgeRight = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 1.0f, 1.0f);
+        start = player.transform.position + (Vector3.up * 1.86f) + (player.transform.right * 0.24f);
+        ledgeRight = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 0.2f, 0.2f);
 
-        start = player.transform.position + (Vector3.up * 1.75f) - (player.transform.forward * 0.15f);
-        ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.right, 0.34f, 1.0f);
+        start = player.transform.position + (Vector3.up * 1.86f) - (player.transform.forward * 0.15f);
+        ledgeInnerRight = ledgeDetector.FindLedgeAtPoint(start, player.transform.right, 0.34f, 0.2f);
 
-        if (right < -0.1f || right > 0.1f)
+        if (right < -0.1f)
         {
-            if (!ledgeLeft || !ledgeRight)
-            {
-                player.Anim.applyRootMotion = false; // Stops player overshooting turn point
-                isOutCornering = true;
-            }
-            else if (ledgeInnerLeft || ledgeInnerRight)
+            if (ledgeInnerLeft)
             {
                 player.Anim.applyRootMotion = false; // Stops player overshooting turn point
                 isInCornering = true;
+            }
+            else if (!ledgeLeft)
+            {
+                player.Anim.applyRootMotion = false; 
+                isOutCornering = true;
+            }
+        }
+        else if (right > 0.1f)
+        {
+            if (ledgeInnerRight)
+            {
+                player.Anim.applyRootMotion = false; 
+                isInCornering = true;
+            }
+            else if (!ledgeRight)
+            {
+                player.Anim.applyRootMotion = false; 
+                isOutCornering = true;
             }
         }
         else
@@ -125,7 +134,7 @@ public class Climbing : StateBase<PlayerController>
 
     private void ClimbUp(PlayerController player)
     {
-        if (Input.GetButton("Walk"))
+        if (Input.GetButton("Sprint"))
             player.Anim.SetTrigger("Handstand");
         else
             player.Anim.SetTrigger("ClimbUp");
@@ -143,22 +152,22 @@ public class Climbing : StateBase<PlayerController>
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
         RaycastHit hit;
-        Vector3 start = player.transform.position + Vector3.up * 2f;
+        Vector3 start = player.transform.position + Vector3.up * 1.86f;
         Debug.DrawRay(start, player.transform.forward * 0.4f, Color.green);
         
         if (Physics.Raycast(start, player.transform.forward, out hit, 0.4f))
         {
             player.transform.rotation = Quaternion.Slerp(player.transform.rotation,
                 Quaternion.LookRotation(-hit.normal, Vector3.up), 10f * Time.deltaTime);
-        
+
             player.transform.position = new Vector3(
-                hit.point.x 
-                - (player.transform.forward.x * (animState.IsName("BracedHang") ? bracedForwardOffset : grabForwardOffset)),
+                hit.point.x
+                - (player.transform.forward.x * grabForwardOffset),
 
                 player.transform.position.y,
 
-                hit.point.z 
-                - (player.transform.forward.z * (animState.IsName("BracedHang") ? bracedForwardOffset : grabForwardOffset))
+                hit.point.z
+                - (player.transform.forward.z * grabForwardOffset)
                 );
         }
     }

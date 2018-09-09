@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     public float walkSpeed = 1.44f;
     public float swimSpeed = 2f;
     public float treadSpeed = 1.2f;
+    public float slideSpeed = 2f;
     [Header("Physics")]
     public float gravity = 9.81f;
     [Header("Jump Speeds")]
@@ -39,6 +40,7 @@ public class PlayerController : MonoBehaviour
     public GameObject pistolRLeg;
 
     private bool isGrounded = true;
+    private bool isSliding = false;
     private bool isFootIK = false;
     private bool holdRotation = false;
     [HideInInspector]
@@ -46,8 +48,6 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public bool isMovingAuto = false;
     private float targetAngle = 0f;
-    private Vector3 posLastFrame = Vector3.zero;
-    private float calculatedSpeed = 0f;
 
     private StateMachine<PlayerController> stateMachine;
     [HideInInspector]
@@ -59,6 +59,9 @@ public class PlayerController : MonoBehaviour
     private Weapon[] pistols = new Weapon[2];
     private Transform waistTarget;
     private Vector3 velocity;
+    [HideInInspector]
+    public Vector3 slopeDirection;
+    private RaycastHit groundHit;
 
     private void Start()
     {
@@ -90,6 +93,7 @@ public class PlayerController : MonoBehaviour
         stateMachine.AddState(new AutoGrabbing());
         stateMachine.AddState(new MonkeySwing());
         stateMachine.AddState(new HorPole());
+        stateMachine.AddState(new Sliding());
         stateMachine.GoToState<Locomotion>();
     }
 
@@ -100,55 +104,44 @@ public class PlayerController : MonoBehaviour
         stateMachine.Update();
         UpdateAnimator();
 
-        calculatedSpeed = Mathf.Abs(Vector3.Distance(transform.position, posLastFrame)) / Time.deltaTime;
-
         if (charControl.enabled && anim.applyRootMotion == false)
             charControl.Move(velocity * Time.deltaTime);
     }
 
     private void CheckForGround()
     {
+        // velY condition helps stuff accidental grounding (like when jumping)
         isGrounded = charControl.isGrounded && velocity.y <= 0.0f;
         anim.SetBool("isGrounded", isGrounded);
 
-        RaycastHit hit;
         groundDistance = 2f;
 
         Vector3 centerStart = transform.position + Vector3.up * 0.2f;
-        List<Vector3> sideChecks = new List<Vector3>();
-        sideChecks.Add(centerStart + transform.forward * charControl.radius);
-        sideChecks.Add(centerStart - transform.forward * charControl.radius);
-        sideChecks.Add(centerStart + transform.right * charControl.radius);
-        sideChecks.Add(centerStart - transform.right * charControl.radius);
 
-        if ((Physics.Raycast(centerStart, Vector3.down, out hit, groundDistance)
-            && !hit.collider.CompareTag("Water"))
-            /*|| (Physics.Raycast(forwardStart, Vector3.down, out hit, groundDistance)
-            && !hit.collider.CompareTag("Water"))
-            || (Physics.Raycast(backStart, Vector3.down, out hit, groundDistance)
-            && !hit.collider.CompareTag("Water"))
-            || (Physics.Raycast(rightStart, Vector3.down, out hit, groundDistance)
-            && !hit.collider.CompareTag("Water"))
-            || (Physics.Raycast(leftStart, Vector3.down, out hit, groundDistance)
-            && !hit.collider.CompareTag("Water"))*/)
+        if ((Physics.Raycast(centerStart, Vector3.down, out groundHit, groundDistance)
+            && !groundHit.collider.CompareTag("Water")))
         {
-            groundDistance = transform.position.y - hit.point.y;
-        }
-        else if (stateMachine.IsInState<Locomotion>())
-        {
-            int hitCount = 0;
-
-            foreach(Vector3 v in sideChecks)
-            {
-                if (Physics.Raycast(v, Vector3.down, out hit, groundDistance))
-                    hitCount++;
-            }
-
-            if (hitCount == 1)
-                velocity = Mathf.Max(walkSpeed, UMath.GetHorizontalMag(velocity)) * transform.forward;
+            groundDistance = transform.position.y - groundHit.point.y;
         }
 
         anim.SetFloat("groundDistance", groundDistance);
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        float angle = UMath.GroundAngle(hit.normal);
+
+        if (isSliding = (angle > charControl.slopeLimit) || hit.gameObject.CompareTag("Slope"))
+        {
+            Vector3 right = Vector3.Cross(Vector3.up, hit.normal);
+            Vector3 dir = Vector3.Cross(right, hit.normal);
+            slopeDirection = dir.normalized;
+            stateMachine.SendMessage("SLIDE");
+        }
+        else
+        {
+            stateMachine.SendMessage("STOP_SLIDE");
+        }
     }
 
     private void OnAnimatorIK(int layerIndex)
@@ -182,6 +175,7 @@ public class PlayerController : MonoBehaviour
                 (waistTarget.position - transform.position).normalized, Vector3.up);
             
             // Correction for faulty bone
+            // IF NEW MODEL CAUSES ISSUES MESS WITH THIS
             waistBone.rotation = Quaternion.Euler(
                 new Vector3(waistBone.eulerAngles.x - 90f, waistBone.eulerAngles.y, 
                 waistBone.eulerAngles.z/* - 90f*/));
@@ -290,13 +284,6 @@ public class PlayerController : MonoBehaviour
             velocity = transform.forward * 0.1f;  // Player will rotate smoothly from idle
 
         targetAngle = Vector3.Angle(velocity, targetVector);
-        /*
-        if (targetAngle > 160f && (anim.GetCurrentAnimatorStateInfo(0).IsName("Run")
-            || anim.GetCurrentAnimatorStateInfo(0).IsName("Walk")))
-            holdRotation = true;
-        else if (holdRotation && (anim.GetAnimatorTransitionInfo(0).IsName("Run_180 -> Run")
-            || anim.GetAnimatorTransitionInfo(0).IsName("Walk_180 -> Walk")))
-            holdRotation = false;*/
 
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * smoothing);
 
@@ -324,6 +311,7 @@ public class PlayerController : MonoBehaviour
 
     public void RotateToVelocityGround(float smoothing = 0f)
     {
+        // if stops Lara returning to the default rotation when idle
         if (UMath.GetHorizontalMag(velocity) > 0.1f && !holdRotation)
         {
             Quaternion target = Quaternion.Euler(0.0f, Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg, 0.0f);
@@ -336,6 +324,7 @@ public class PlayerController : MonoBehaviour
 
     public void RotateToVelocity(float smoothing = 0f)
     {
+        // if stops Lara returning to the default rotation when idle
         if (UMath.GetHorizontalMag(velocity) > 0.1f)
         {
             if (smoothing == 0f)
@@ -344,11 +333,6 @@ public class PlayerController : MonoBehaviour
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 
                     smoothing * Time.deltaTime);
         }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        //if (collision.gameObject.CompareTag(""))
     }
 
     public void RotateToTarget(Vector3 target)
@@ -442,15 +426,12 @@ public class PlayerController : MonoBehaviour
     public Vector3 Velocity
     {
         get { return velocity; }
-        set
-        {
-                velocity = value;
-        }
+        set { velocity = value; }
     }
 
-    public float CalculatedSpeed
+    public RaycastHit GroundHit
     {
-        get { return calculatedSpeed; }
-        set { calculatedSpeed = value; }
+        get { return groundHit; }
     }
+
 }

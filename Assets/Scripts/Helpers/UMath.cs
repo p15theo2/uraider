@@ -28,4 +28,9 @@ public static class UMath
     {
         return displace / speed;  // t = s/u
     }
+
+    public static float GroundAngle(Vector3 normal)
+    {
+        return Vector3.Angle(Vector3.up, normal);
+    }
 }

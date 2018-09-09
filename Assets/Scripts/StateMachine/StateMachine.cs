@@ -49,4 +49,9 @@ public class StateMachine<T>
     {
         currentState.Update(owner);
     }
+
+    public void SendMessage(string msg)
+    {
+        currentState.HandleMessage(owner, msg);
+    }
 }

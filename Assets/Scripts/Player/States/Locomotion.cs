@@ -14,12 +14,23 @@ public class Locomotion : StateBase<PlayerController>
     public override void OnEnter(PlayerController player)
     {
         player.Anim.applyRootMotion = false;
+        isTransitioning = false;
+        isRootMotion = false;
     }
 
     public override void OnExit(PlayerController player)
     {
         isRootMotion = false;
         isTransitioning = false;
+    }
+
+    public override void HandleMessage(PlayerController player, string msg)
+    {
+        if (msg == "SLIDE")
+        {
+            player.StateMachine.GoToState<Sliding>();
+            isTransitioning = true;
+        }
     }
 
     public override void Update(PlayerController player)
@@ -72,6 +83,7 @@ public class Locomotion : StateBase<PlayerController>
 
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);
+        StopLaraFloating(player);
 
         if (Input.GetButtonDown("Crouch"))
         {
@@ -97,6 +109,31 @@ public class Locomotion : StateBase<PlayerController>
 
         if (Input.GetButtonDown("Jump") && !isRootMotion)
             player.StateMachine.GoToState<Jumping>();
+    }
+
+    private void StopLaraFloating(PlayerController player)
+    {
+        Vector3 centerStart = player.transform.position + Vector3.up * 0.2f;
+
+        List<Vector3> sideChecks = new List<Vector3>();
+        sideChecks.Add(centerStart + player.transform.forward * player.charControl.radius);
+        //sideChecks.Add(centerStart - player.transform.forward * player.charControl.radius);
+        sideChecks.Add(centerStart + player.transform.right * player.charControl.radius);
+        sideChecks.Add(centerStart - player.transform.right * player.charControl.radius);
+
+        int hitCount = 0;
+        bool push = true;
+
+        RaycastHit hit = new RaycastHit();
+        foreach (Vector3 v in sideChecks)
+        {
+            if (Physics.Raycast(v, Vector3.down, out hit, 2f))
+                push = false;
+        }
+
+        // Lara is floating off edge basically
+        if (/*hitCount == 1*/push && !player.Grounded)
+            player.Velocity = Mathf.Max(player.walkSpeed, UMath.GetHorizontalMag(player.Velocity)) * player.transform.forward;  // push Lara
     }
 
     private void LookForStepLedges(PlayerController player)
