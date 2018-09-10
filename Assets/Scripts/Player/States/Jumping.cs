@@ -37,14 +37,9 @@ public class Jumping : StateBase<PlayerController>
 
     public override void OnExit(PlayerController player)
     {
-        player.Anim.SetBool("isDive", false);
         hasJumped = false;
         isGrabbing = false;
         ledgesDetected = false;
-        player.Anim.SetBool("isJumping", false);
-        player.Anim.SetBool("isGrabbing", false);
-        if (player.Velocity.y < -10f && player.Grounded)
-            player.Stats.Health += (int)player.Velocity.y;
     }
 
     public override void Update(PlayerController player)
@@ -114,11 +109,11 @@ public class Jumping : StateBase<PlayerController>
                 player.StateMachine.GoToState<Grabbing>();
                 return;
             }
-
-            player.ApplyGravity(player.gravity);
-
-            if (player.Grounded)
-                player.StateMachine.GoToState<Locomotion>();
+            else
+            {
+                player.StateMachine.GoToState<InAir>();
+                return;
+            }
         }
     }
 }

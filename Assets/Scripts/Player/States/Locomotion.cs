@@ -13,6 +13,7 @@ public class Locomotion : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
+        Debug.Log("A loco");
         player.Anim.applyRootMotion = false;
         isTransitioning = false;
         isRootMotion = false;
@@ -26,7 +27,7 @@ public class Locomotion : StateBase<PlayerController>
 
     public override void HandleMessage(PlayerController player, string msg)
     {
-        if (msg == "SLIDE")
+        if (msg == "SLIDE" && !isRootMotion)
         {
             player.StateMachine.GoToState<Sliding>();
             isTransitioning = true;
@@ -97,7 +98,6 @@ public class Locomotion : StateBase<PlayerController>
                 player.Anim.applyRootMotion = true;
                 player.MoveWait(ledgeDetector.GrabPoint - player.transform.forward * 0.2f,
                     Quaternion.LookRotation(-ledgeDetector.Direction,Vector3.up));
-                //player.StateMachine.GoToState<Climbing>();
                 isTransitioning = true;
                 return;
             }

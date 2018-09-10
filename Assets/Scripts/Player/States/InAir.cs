@@ -4,20 +4,42 @@ using UnityEngine;
 
 public class InAir : StateBase<PlayerController>
 {
+    private bool haltUpdate = false;
+
     public override void OnEnter(PlayerController player)
     {
         player.Anim.applyRootMotion = false;
+        haltUpdate = false;
         //player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
     }
 
     public override void OnExit(PlayerController player)
     {
-        
+        haltUpdate = false;
+
+        if (player.Velocity.y < -10f && player.Grounded)
+            player.Stats.Health += (int)player.Velocity.y;
+
+        player.Anim.SetBool("isJumping", false);
+        player.Anim.SetBool("isGrabbing", false);
+        player.Anim.SetBool("isDive", false);
+    }
+
+    public override void HandleMessage(PlayerController player, string msg)
+    {
+        if (msg == "SLIDE")
+        {
+            player.StateMachine.GoToState<Sliding>();
+            haltUpdate = true;
+        }
     }
 
     public override void Update(PlayerController player)
     {
-        Debug.Log("inair");
+        if (haltUpdate)
+            return;
+
+        AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
         player.ApplyGravity(player.gravity);
 
@@ -27,15 +49,20 @@ public class InAir : StateBase<PlayerController>
         {
             if (player.Velocity.y < -16f)
                 player.StateMachine.GoToState<Dead>();
-            else
+            else if (UMath.GroundAngle(player.GroundHit.normal) <= player.charControl.slopeLimit)
             {
+                // Stops player moving forward on landing
                 if (Input.GetAxisRaw("Vertical") < 0.1f && Input.GetAxisRaw("Horizontal") < 0.1f)
                     player.Velocity = Vector3.down * player.gravity;
-
+                
                 player.StateMachine.GoToState<Locomotion>();
             }
                 
         } 
-        
+        else if (Input.GetButtonDown("Action") && !player.Anim.GetBool("isDive"))
+        {
+            player.StateMachine.GoToState<Grabbing>();
+            return;
+        }
     }
 }

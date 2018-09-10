@@ -16,6 +16,7 @@ public class Swimming : StateBase<PlayerController>
         isEntering = true;
         isClimbingUp = false;
         player.camController.PivotOnTarget();
+        player.Velocity.Scale(Vector3.up);
     }
 
     public override void OnExit(PlayerController player)

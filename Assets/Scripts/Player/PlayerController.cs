@@ -122,31 +122,33 @@ public class PlayerController : MonoBehaviour
             && !groundHit.collider.CompareTag("Water")))
         {
             groundDistance = transform.position.y - groundHit.point.y;
+
+            // Stuff for slopes (Lara no longer gets stuck)
+
+            float groundAngle = UMath.GroundAngle(groundHit.normal);
+
+            if (groundDistance < 0.2f)
+            {
+                if (groundHit.collider.CompareTag("Slope") || groundAngle > charControl.slopeLimit)
+                {
+                    Vector3 right = Vector3.Cross(Vector3.up, groundHit.normal);
+                    Vector3 dir = Vector3.Cross(right, groundHit.normal);
+                    slopeDirection = dir.normalized;
+                    stateMachine.SendMessage("SLIDE");
+                }
+                else
+                {
+                    stateMachine.SendMessage("STOP_SLIDE");
+                }
+            }
         }
 
         anim.SetFloat("groundDistance", groundDistance);
     }
 
-    private void OnControllerColliderHit(ControllerColliderHit hit)
-    {
-        float angle = UMath.GroundAngle(hit.normal);
-
-        if (isSliding = (angle > charControl.slopeLimit) || hit.gameObject.CompareTag("Slope"))
-        {
-            Vector3 right = Vector3.Cross(Vector3.up, hit.normal);
-            Vector3 dir = Vector3.Cross(right, hit.normal);
-            slopeDirection = dir.normalized;
-            stateMachine.SendMessage("SLIDE");
-        }
-        else
-        {
-            stateMachine.SendMessage("STOP_SLIDE");
-        }
-    }
-
     private void OnAnimatorIK(int layerIndex)
     {
-        if (isFootIK && UMath.GetHorizontalMag(velocity) < 0.1f)
+        if (isFootIK /*&& UMath.GetHorizontalMag(velocity) < 0.1f*/)
         {
             float curWeight = 1f;
             RaycastHit hit;
@@ -154,15 +156,15 @@ public class PlayerController : MonoBehaviour
             {
                 anim.SetIKPosition(AvatarIKGoal.LeftFoot, hit.point + Vector3.up * footYOffset);
                 anim.SetIKPositionWeight(AvatarIKGoal.LeftFoot, curWeight);
-                anim.SetIKRotation(AvatarIKGoal.LeftFoot, Quaternion.LookRotation(transform.forward, hit.normal));
-                anim.SetIKRotationWeight(AvatarIKGoal.LeftFoot, curWeight);
+                /*anim.SetIKRotation(AvatarIKGoal.LeftFoot, Quaternion.LookRotation(transform.forward, hit.normal));
+                anim.SetIKRotationWeight(AvatarIKGoal.LeftFoot, curWeight);*/
             }
             if (Physics.Raycast(rightFootIK.position, Vector3.down, out hit, 0.5f))
             {
                 anim.SetIKPosition(AvatarIKGoal.RightFoot, hit.point + Vector3.up * footYOffset);
                 anim.SetIKPositionWeight(AvatarIKGoal.RightFoot, curWeight);
-                anim.SetIKRotation(AvatarIKGoal.RightFoot, Quaternion.LookRotation(transform.forward, hit.normal));
-                anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, curWeight);
+               /* anim.SetIKRotation(AvatarIKGoal.RightFoot, Quaternion.LookRotation(transform.forward, hit.normal));
+                anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, curWeight);*/
             }
         }
     }
