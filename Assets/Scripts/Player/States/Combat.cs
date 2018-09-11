@@ -10,6 +10,7 @@ public class Combat : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
+        player.ForceWaistRotation = true;
         player.Anim.SetBool("isCombat", true);
         player.Anim.applyRootMotion = false;
         player.Stats.ShowCanvas();
@@ -25,6 +26,7 @@ public class Combat : StateBase<PlayerController>
     {
         player.camController.State = CameraState.Grounded;
         player.WaistTarget = null;
+        player.ForceWaistRotation = false;
         player.Anim.SetBool("isCombat", false);
         player.Stats.HideCanvas();
         player.Anim.SetBool("isTargetting", false);
@@ -58,7 +60,8 @@ public class Combat : StateBase<PlayerController>
         if (target != null)
         {
             player.RotateToTarget(target.position);
-            player.WaistTarget = target;
+            player.WaistRotation = Quaternion.LookRotation(
+                (target.position - player.transform.position).normalized, Vector3.up);
             player.camController.State = CameraState.Combat;
             player.Anim.SetBool("isTargetting", true);
             if (Input.GetMouseButtonDown(0))
@@ -74,7 +77,7 @@ public class Combat : StateBase<PlayerController>
         }
         else
         {
-            player.WaistTarget = null;
+            player.WaistRotation = player.transform.rotation;
             player.camController.State = CameraState.Grounded;
             player.RotateToVelocityGround();
             player.Anim.SetBool("isTargetting", false);

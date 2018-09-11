@@ -64,11 +64,11 @@ public class Locomotion : StateBase<PlayerController>
                 player.StateMachine.GoToState<Sliding>();
                 return;
             }
-        }
-        else if (Input.GetButtonDown("Draw Weapon"))
-        {
-            player.StateMachine.GoToState<Combat>();
-            return;
+            else if (Input.GetButtonDown("Draw Weapon"))
+            {
+                player.StateMachine.GoToState<Combat>();
+                return;
+            }
         }
 
         float moveSpeed = Input.GetButton("Walk") ? player.walkSpeed

@@ -43,6 +43,7 @@ public class PlayerController : MonoBehaviour
     private bool isSliding = false;
     private bool isFootIK = false;
     private bool holdRotation = false;
+    private bool forceWaistRotation = false;
     [HideInInspector]
     public float groundDistance = 0f;
     [HideInInspector]
@@ -60,6 +61,7 @@ public class PlayerController : MonoBehaviour
     private PlayerSFX playerSFX;
     private Weapon[] pistols = new Weapon[2];
     private Transform waistTarget;
+    private Quaternion waistRotation;
     private Vector3 velocity;
     [HideInInspector]
     public Vector3 slopeDirection;
@@ -174,10 +176,11 @@ public class PlayerController : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (waistTarget != null)
+        if (forceWaistRotation)
         {
-            waistBone.rotation = Quaternion.LookRotation(
-                (waistTarget.position - transform.position).normalized, Vector3.up);
+            /*waistBone.rotation = Quaternion.LookRotation(
+                (waistTarget.position - transform.position).normalized, Vector3.up);*/
+            waistBone.rotation = waistRotation;
             
             // Correction for faulty bone
             // IF NEW MODEL CAUSES ISSUES MESS WITH THIS
@@ -402,6 +405,12 @@ public class PlayerController : MonoBehaviour
         set { waistTarget = value; }
     }
 
+    public Quaternion WaistRotation
+    {
+        get { return WaistRotation; }
+        set { waistRotation = value; }
+    }
+
     public Animator Anim
     {
         get { return anim; }
@@ -426,6 +435,12 @@ public class PlayerController : MonoBehaviour
     {
         get { return isFootIK; }
         set { isFootIK = value; }
+    }
+
+    public bool ForceWaistRotation
+    {
+        get { return forceWaistRotation; }
+        set { forceWaistRotation = value; }
     }
 
     public Vector3 Velocity
