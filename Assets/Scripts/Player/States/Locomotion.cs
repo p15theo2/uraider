@@ -27,11 +27,11 @@ public class Locomotion : StateBase<PlayerController>
 
     public override void HandleMessage(PlayerController player, string msg)
     {
-        if (msg == "SLIDE" && !isRootMotion)
+        /*if (msg == "SLIDE" && !isRootMotion)
         {
             player.StateMachine.GoToState<Sliding>();
             isTransitioning = true;
-        }
+        }*/
     }
 
     public override void Update(PlayerController player)
@@ -56,6 +56,14 @@ public class Locomotion : StateBase<PlayerController>
         {
             player.StateMachine.GoToState<InAir>();
             return;
+        }
+        else if (player.Grounded)
+        {
+            if (player.groundAngle > player.charControl.slopeLimit && !isRootMotion)
+            {
+                player.StateMachine.GoToState<Sliding>();
+                return;
+            }
         }
         else if (Input.GetButtonDown("Draw Weapon"))
         {

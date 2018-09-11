@@ -38,8 +38,14 @@ class Freeclimb : StateBase<PlayerController>
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+
+        Debug.Log(isClimbingUp);
+
         if (isTransition)
         {
+            Debug.Log("trans me");
             if (animState.IsName("Freeclimb_to_Slant") || animState.IsName("Slantclimb_to_Freeclimb")
                 || animState.IsName("Slantclimb_to_Freeclimb_Right"))
             {
@@ -54,6 +60,7 @@ class Freeclimb : StateBase<PlayerController>
 
         if (isClimbingUp)
         {
+            Debug.Log("I climb up now");
             if (animState.IsName("Locomotion"))
             {
                 player.Anim.SetBool("isClimbingUp", false);
@@ -71,7 +78,7 @@ class Freeclimb : StateBase<PlayerController>
         RaycastHit hitTop;
         Vector3 slantCheckStart = player.transform.position + 1.5f * Vector3.up;
         Vector3 flatCheckStart = player.transform.position + 2f * Vector3.up - player.transform.forward * 0.2f;
-        if (ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * 1.4f,
+        if (vertical > 0.1f && ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * 1.4f,
             player.transform.forward,
             0.6f,
             0.2f, true))
@@ -106,10 +113,7 @@ class Freeclimb : StateBase<PlayerController>
             
         }
 
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-
-        if (player.groundDistance <= 0.5f)
+        if (player.groundDistance <= 0.6f)
             vertical = Mathf.Clamp01(vertical);
 
         player.Anim.SetFloat("Forward", vertical);

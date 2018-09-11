@@ -18,13 +18,13 @@ public class Sliding : StateBase<PlayerController>
 
     public override void HandleMessage(PlayerController player, string msg)
     {
-        if (msg == "STOP_SLIDE")
+        /*if (msg == "STOP_SLIDE")
         {
             if (player.Grounded)
                 player.StateMachine.GoToState<Locomotion>();
             else
                 player.StateMachine.GoToState<InAir>();
-        }
+        }*/
     }
 
     public override void Update(PlayerController player)
@@ -33,6 +33,17 @@ public class Sliding : StateBase<PlayerController>
         {
             player.RotateToVelocityGround(); // Stops player doing side jumps
             player.StateMachine.GoToState<Jumping>();
+            return;
+        }
+        else if (!player.Grounded)
+        {
+            player.Velocity.Scale(new Vector3(1f, 0f, 1f));
+            player.StateMachine.GoToState<InAir>();
+            return;
+        }
+        else if (player.groundAngle < player.charControl.slopeLimit)
+        {
+            player.StateMachine.GoToState<Locomotion>();
             return;
         }
 

@@ -27,11 +27,11 @@ public class InAir : StateBase<PlayerController>
 
     public override void HandleMessage(PlayerController player, string msg)
     {
-        if (msg == "SLIDE")
+        /*if (msg == "SLIDE")
         {
             player.StateMachine.GoToState<Sliding>();
             haltUpdate = true;
-        }
+        }*/
     }
 
     public override void Update(PlayerController player)
@@ -56,6 +56,12 @@ public class InAir : StateBase<PlayerController>
                     player.Velocity = Vector3.down * player.gravity;
                 
                 player.StateMachine.GoToState<Locomotion>();
+                return;
+            }
+            else
+            {
+                player.StateMachine.GoToState<Sliding>();
+                return;
             }
                 
         } 

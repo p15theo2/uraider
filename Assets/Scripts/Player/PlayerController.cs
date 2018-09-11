@@ -46,6 +46,8 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public float groundDistance = 0f;
     [HideInInspector]
+    public float groundAngle = 0f;
+    [HideInInspector]
     public bool isMovingAuto = false;
     private float targetAngle = 0f;
 
@@ -102,6 +104,7 @@ public class PlayerController : MonoBehaviour
         CheckForGround();
 
         stateMachine.Update();
+
         UpdateAnimator();
 
         if (charControl.enabled && anim.applyRootMotion == false)
@@ -110,23 +113,22 @@ public class PlayerController : MonoBehaviour
 
     private void CheckForGround()
     {
-        // velY condition helps stuff accidental grounding (like when jumping)
+        // velY condition helps stop accidental grounding (like when jumping)
         isGrounded = charControl.isGrounded && velocity.y <= 0.0f;
         anim.SetBool("isGrounded", isGrounded);
 
         groundDistance = 2f;
+        groundAngle = 0f;
 
         Vector3 centerStart = transform.position + Vector3.up * 0.2f;
 
         if ((Physics.Raycast(centerStart, Vector3.down, out groundHit, groundDistance)
             && !groundHit.collider.CompareTag("Water")))
         {
+            groundAngle = UMath.GroundAngle(groundHit.normal);
             groundDistance = transform.position.y - groundHit.point.y;
 
             // Stuff for slopes (Lara no longer gets stuck)
-
-            float groundAngle = UMath.GroundAngle(groundHit.normal);
-
             if (groundDistance < 0.2f)
             {
                 if (groundHit.collider.CompareTag("Slope") || groundAngle > charControl.slopeLimit)
@@ -144,6 +146,7 @@ public class PlayerController : MonoBehaviour
         }
 
         anim.SetFloat("groundDistance", groundDistance);
+        anim.SetFloat("groundAngle", groundAngle);
     }
 
     private void OnAnimatorIK(int layerIndex)

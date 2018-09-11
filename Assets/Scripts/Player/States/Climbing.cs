@@ -70,7 +70,19 @@ public class Climbing : StateBase<PlayerController>
         right = Input.GetAxisRaw("Horizontal");
         player.Anim.SetFloat("Right", right);
 
-        CheckForFeetRoom(player);
+        RaycastHit hit;
+
+        if (Physics.Raycast(player.transform.position, player.transform.forward, out hit, 0.5f))
+        {
+            player.Anim.SetBool("isFeetRoom", true);
+
+            if (hit.collider.CompareTag("Freeclimb"))
+            {
+                player.StateMachine.GoToState<Freeclimb>();
+                return;
+            }
+        }
+
         HandleCorners(player);
         AdjustPosition(player);
 
@@ -151,22 +163,25 @@ public class Climbing : StateBase<PlayerController>
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
+        Debug.Log(ledgeDetector.GrabPoint.y - player.transform.position.y);
+
         RaycastHit hit;
         Vector3 start = player.transform.position + Vector3.up * 1.86f;
         Debug.DrawRay(start, player.transform.forward * 0.4f, Color.green);
         
-        if (Physics.Raycast(start, player.transform.forward, out hit, 0.4f))
+        if (ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 0.4f, 0.2f)
+            /*Physics.Raycast(start, player.transform.forward, out hit, 0.4f)*/)
         {
             player.transform.rotation = Quaternion.Slerp(player.transform.rotation,
-                Quaternion.LookRotation(-hit.normal, Vector3.up), 10f * Time.deltaTime);
+                Quaternion.LookRotation(/*-hit.normal*/ledgeDetector.Direction, Vector3.up), 10f * Time.deltaTime);
 
             player.transform.position = new Vector3(
-                hit.point.x
+                ledgeDetector.GrabPoint.x
                 - (player.transform.forward.x * grabForwardOffset),
 
-                player.transform.position.y,
+                animState.IsName("HangLoop") ? ledgeDetector.GrabPoint.y - 1.975f : player.transform.position.y,
 
-                hit.point.z
+                ledgeDetector.GrabPoint.z
                 - (player.transform.forward.z * grabForwardOffset)
                 );
         }
@@ -174,7 +189,6 @@ public class Climbing : StateBase<PlayerController>
 
     private void CheckForFeetRoom(PlayerController player)
     {
-        player.Anim.SetBool("isFeetRoom", isFeetRoom = 
-            Physics.Raycast(player.transform.position, player.transform.forward, 0.5f));
+        
     }
 }
