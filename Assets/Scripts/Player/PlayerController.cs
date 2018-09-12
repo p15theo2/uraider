@@ -50,7 +50,7 @@ public class PlayerController : MonoBehaviour
     public float groundAngle = 0f;
     [HideInInspector]
     public bool isMovingAuto = false;
-    private float targetAngle = 0f;
+    public float targetAngle = 0f;
 
     private StateMachine<PlayerController> stateMachine;
     [HideInInspector]
@@ -108,7 +108,7 @@ public class PlayerController : MonoBehaviour
         stateMachine.Update();
 
         UpdateAnimator();
-
+        
         if (charControl.enabled && anim.applyRootMotion == false)
             charControl.Move(velocity * Time.deltaTime);
     }
@@ -127,24 +127,8 @@ public class PlayerController : MonoBehaviour
         if ((Physics.Raycast(centerStart, Vector3.down, out groundHit, groundDistance)
             && !groundHit.collider.CompareTag("Water")))
         {
-            groundAngle = UMath.GroundAngle(groundHit.normal);
             groundDistance = transform.position.y - groundHit.point.y;
-
-            // Stuff for slopes (Lara no longer gets stuck)
-            if (groundDistance < 0.2f)
-            {
-                if (groundHit.collider.CompareTag("Slope") || groundAngle > charControl.slopeLimit)
-                {
-                    Vector3 right = Vector3.Cross(Vector3.up, groundHit.normal);
-                    Vector3 dir = Vector3.Cross(right, groundHit.normal);
-                    slopeDirection = dir.normalized;
-                    stateMachine.SendMessage("SLIDE");
-                }
-                else
-                {
-                    stateMachine.SendMessage("STOP_SLIDE");
-                }
-            }
+            groundAngle = UMath.GroundAngle(groundHit.normal);
         }
 
         anim.SetFloat("groundDistance", groundDistance);
@@ -178,8 +162,6 @@ public class PlayerController : MonoBehaviour
     {
         if (forceWaistRotation)
         {
-            /*waistBone.rotation = Quaternion.LookRotation(
-                (waistTarget.position - transform.position).normalized, Vector3.up);*/
             waistBone.rotation = waistRotation;
             
             // Correction for faulty bone
@@ -282,7 +264,7 @@ public class PlayerController : MonoBehaviour
         return targetVector;
     }
 
-    public void MoveGrounded(float speed, bool pushDown = true, float smoothing = 8f)
+    public void MoveGrounded(float speed, bool pushDown = true, float smoothing = 10f)
     {
         Vector3 targetVector = TargetMovementVector(speed);
 
@@ -296,6 +278,8 @@ public class PlayerController : MonoBehaviour
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * smoothing);
 
         anim.SetFloat("TargetAngle", targetAngle);
+        anim.SetFloat("SignedTargetAngle", Vector3.SignedAngle(velocity, targetVector, Vector3.up));
+        Debug.Log("SA: " + anim.GetFloat("SignedTargetAngle"));
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity));
         anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
 
@@ -303,12 +287,19 @@ public class PlayerController : MonoBehaviour
             velocity.y = -gravity;  // so charControl is grounded consistently
     }
 
-    public void MoveFree(float speed, float smoothing = 8f)
+    public void MoveFree(float speed, float smoothing = 8f, float maxTurnAngle = 10f)
     {
         Vector3 targetVector = cam.forward * Input.GetAxisRaw("Vertical")
             + cam.right * Input.GetAxisRaw("Horizontal");
         if (targetVector.magnitude > 1.0f)
             targetVector = targetVector.normalized;
+
+        if (Vector3.Angle(velocity.normalized, targetVector) > maxTurnAngle)
+        {
+            Vector3 direction = Vector3.Cross(velocity.normalized, targetVector);
+            targetVector = Quaternion.AngleAxis(maxTurnAngle, direction) * velocity.normalized;
+        }
+
         targetVector *= speed;
 
         velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * smoothing);

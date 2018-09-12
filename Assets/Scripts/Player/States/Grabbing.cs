@@ -30,6 +30,8 @@ class Grabbing : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
+        AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
+
         player.ApplyGravity(player.gravity);
 
         if (player.Velocity.y < -10f)
@@ -40,7 +42,7 @@ class Grabbing : StateBase<PlayerController>
 
         RaycastHit hit;
         Vector3 startPos = new Vector3(player.transform.position.x,
-            player.transform.position.y + player.grabUpOffset, // 1.72
+            player.transform.position.y + (animState.IsName("Reach") ? player.grabUpOffset : 1.975f),
             player.transform.position.z);
 
         // If Lara's position changes too fast, can miss ledges
@@ -53,7 +55,7 @@ class Grabbing : StateBase<PlayerController>
         deltaH))
         {
             grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * player.grabForwardOffset),
-                ledgeDetector.GrabPoint.y - player.grabUpOffset,
+                ledgeDetector.GrabPoint.y - (animState.IsName("Reach") ? player.grabUpOffset : 1.975f),
                 ledgeDetector.GrabPoint.z - (player.transform.forward.z * player.grabForwardOffset));
 
             grabType = ledgeDetector.GetGrabType(player.transform.position, player.transform.forward,

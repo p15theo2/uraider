@@ -13,7 +13,7 @@ public class Locomotion : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
-        Debug.Log("A loco");
+        player.Anim.SetBool("isJumping", false);
         player.Anim.applyRootMotion = false;
         isTransitioning = false;
         isRootMotion = false;
@@ -77,7 +77,8 @@ public class Locomotion : StateBase<PlayerController>
 
         player.Anim.SetFloat("Forward", Input.GetAxisRaw("Vertical"));
 
-        if (animState.IsName("Locomotion") || animState.IsName("RunJump_to_Run") || transInfo.IsName("FallMed -> RunJump_to_Run"))
+        if (animState.IsName("Locomotion") || animState.IsName("RunJump_to_Run") || transInfo.IsName("FallMed -> RunJump_to_Run")
+            || transInfo.IsName("Turn180 -> Locomotion"))
         {
             player.MoveGrounded(moveSpeed);
             player.RotateToVelocityGround();
@@ -129,7 +130,6 @@ public class Locomotion : StateBase<PlayerController>
         sideChecks.Add(centerStart + player.transform.right * player.charControl.radius);
         sideChecks.Add(centerStart - player.transform.right * player.charControl.radius);
 
-        int hitCount = 0;
         bool push = true;
 
         RaycastHit hit = new RaycastHit();
