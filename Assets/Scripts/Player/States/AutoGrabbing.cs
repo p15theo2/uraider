@@ -55,7 +55,7 @@ public class AutoGrabbing : StateBase<PlayerController>
             Vector3.Scale(player.transform.position, multiplier), 
             Vector3.Scale(startPosition, multiplier)));
 
-        if (/*Time.time - timeTracker >= player.grabTime*/ distanceTravelled >= distanceToGo)
+        if (Time.time - timeTracker >= player.grabTime /*distanceTravelled >= distanceToGo*/)
         {
             player.transform.position = grabPoint;
 

@@ -22,7 +22,7 @@ public class Door : MonoBehaviour
 
     private IEnumerator OpenDoor(PlayerController player)
     {
-        player.MoveWait(transform.position + Vector3.forward * 1f + Vector3.left * 0.34f, Quaternion.LookRotation(Vector3.right),
+        player.MoveWait(transform.position + transform.forward * 1f - transform.right * 0.34f, Quaternion.LookRotation(transform.right),
             0.4f, 16f);
 
         while (player.isMovingAuto)

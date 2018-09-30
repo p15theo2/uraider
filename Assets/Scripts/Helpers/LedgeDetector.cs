@@ -36,8 +36,8 @@ public class LedgeDetector
 
     public bool CanClimbUp(Vector3 start, Vector3 dir)
     {
-        if (!FindLedgeJump(start + 2.12f * Vector3.up, dir, 0.26f, 1.8f)
-            && FindLedgeAtPoint(start + 1.8f * Vector3.up, dir, 0.5f, 0.5f))
+        if (!Physics.Raycast(start + Vector3.up * 2.1f, dir, 0.4f)
+            && !Physics.Raycast(start + Vector3.up * 3.9f, dir, 0.4f))
             return true;
 
         return false;
@@ -84,7 +84,7 @@ public class LedgeDetector
         return false;
     }
 
-    public bool FindPlatformInfront(Vector3 start, Vector3 dir, float maxHeight, float depth = 0.76f)
+    public bool FindPlatformInfront(Vector3 start, Vector3 dir, float maxHeight, float depth = 0.25f)
     {
         RaycastHit vHit;
         Vector3 vStart = start + (Vector3.up * 2f) + (dir * depth);

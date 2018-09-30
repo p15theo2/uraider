@@ -68,7 +68,7 @@ public class Swimming : StateBase<PlayerController>
             else
                 player.MoveFree(player.swimSpeed);
 
-            player.RotateToVelocity(4f);
+            player.RotateToVelocity();
 
             RaycastHit hit;
             if (Physics.Raycast(player.transform.position + (Vector3.up * 0.5f), Vector3.down, out hit, 0.5f))
@@ -79,6 +79,7 @@ public class Swimming : StateBase<PlayerController>
                     player.Anim.SetBool("isTreading", true);
                     player.camController.PivotOnHead();
                     player.transform.position = hit.point + (1.48f * Vector3.down);
+                    player.transform.rotation = Quaternion.Euler(0f, player.transform.rotation.y, 0f);
                 }
             }
         }
@@ -110,11 +111,11 @@ public class Swimming : StateBase<PlayerController>
 
     private void SwimUp(PlayerController player)
     {
-
+        player.MoveInDirection(player.swimSpeed, Vector3.up);
     }
 
     private void SwimDown(PlayerController player)
     {
-
+        player.MoveInDirection(player.swimSpeed, Vector3.down);
     }
 }

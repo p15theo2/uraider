@@ -32,6 +32,8 @@ class Grabbing : StateBase<PlayerController>
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
+        player.Anim.SetFloat("YSpeed", player.Velocity.y);
+
         player.ApplyGravity(player.gravity);
 
         if (player.Velocity.y < -10f)
@@ -55,21 +57,20 @@ class Grabbing : StateBase<PlayerController>
         deltaH))
         {
             grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * player.grabForwardOffset),
-                ledgeDetector.GrabPoint.y - (animState.IsName("Reach") ? player.grabUpOffset : 1.975f),
+                ledgeDetector.GrabPoint.y - (!animState.IsName("JumpUp") && !animState.IsName("Fall2") ? player.grabUpOffset : player.hangUpOffset),
                 ledgeDetector.GrabPoint.z - (player.transform.forward.z * player.grabForwardOffset));
 
             grabType = ledgeDetector.GetGrabType(player.transform.position, player.transform.forward,
                 player.jumpZBoost, player.jumpYVel, -player.gravity);
 
             player.transform.position = grabPoint;
-            player.transform.rotation = Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up);
+            Quaternion ledgeRot = Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up);
+            player.transform.rotation = Quaternion.Euler(0f, ledgeRot.eulerAngles.y, 0f);
 
             if (ledgeDetector.WallType == LedgeType.Free)
                 player.StateMachine.GoToState<Freeclimb>();
-            else if (grabType == GrabType.Hand)
-                player.StateMachine.GoToState<Climbing>();
             else
-                player.StateMachine.GoToState<Locomotion>();
+                player.StateMachine.GoToState<Climbing>();
         }
         else if (Physics.Raycast(startPos, Vector3.up, out hit, 0.5f))
         {

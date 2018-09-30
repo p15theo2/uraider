@@ -4,10 +4,9 @@ using UnityEngine;
 
 public class Jumping : StateBase<PlayerController>
 {
-    private const float GRAB_TIME = 0.8f;
-
     private Vector3 grabPoint;
     private GrabType grabType;
+
     private bool hasJumped = false;
     private bool ledgesDetected = false;
     private bool isGrabbing = false;
@@ -22,11 +21,8 @@ public class Jumping : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
-        player.Anim.SetBool("isJumping", true);
-        //player.Anim.applyRootMotion = true;
-        lastChance = Random.Range(0f, 1f);
-        player.Anim.SetFloat("lastChance", lastChance);
         player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
+        player.Anim.SetBool("isJumping", true);
 
         if (player.autoLedgeTarget)
         {
@@ -61,14 +57,11 @@ public class Jumping : StateBase<PlayerController>
             isGrabbing = true;
         }
 
-        if (transInfo.IsName("Locomotion -> Stand_Compress"))
-        {
-            player.Velocity = Vector3.zero;
-        }
+        bool isRunJump = animState.IsName("RunJump") || animState.IsName("RunJumpM") || animState.IsName("JumpUp")
+            || animState.IsName("SprintJump") || animState.IsName("Dive");
+        bool isStandJump = animState.IsName("StandJump") || transInfo.IsName("Still_Compress_Forward -> StandJump");
 
-        if ((animState.IsName("RunJump") || animState.IsName("JumpUp") 
-            || animState.IsName("SprintJump") || animState.IsName("Dive")
-            || animState.IsName("StandJump")) && !hasJumped)
+        if ((isRunJump|| isStandJump) && !hasJumped)
         {
             player.Anim.applyRootMotion = false;
             float curSpeed = UMath.GetHorizontalMag(player.Velocity);
@@ -91,8 +84,8 @@ public class Jumping : StateBase<PlayerController>
 
             if (!ledgesDetected)  // can change in previous if - so NO else if
             {
-                float zVel = curSpeed > 0.1f ? curSpeed + player.jumpZBoost
-                    : targetSpeed > 0.1f ? 3f
+                float zVel = isRunJump ? curSpeed + player.jumpZBoost
+                    : isStandJump ? 3f
                     : 0.1f;
                 float yVel = player.jumpYVel;
 

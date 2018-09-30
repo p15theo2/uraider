@@ -50,6 +50,11 @@ public class StateMachine<T>
         currentState.Update(owner);
     }
 
+    public void SendMessage(ControllerColliderHit msg)
+    {
+        currentState.HandleMessage(owner, msg);
+    }
+
     public void SendMessage(string msg)
     {
         currentState.HandleMessage(owner, msg);

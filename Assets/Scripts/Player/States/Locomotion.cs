@@ -8,30 +8,24 @@ public class Locomotion : StateBase<PlayerController>
     private bool waitingBool = false;  // avoids early reset of root mtn
     private bool isJustEntered = false;
     private bool isTransitioning = false;
+    private bool isStairs = false;
+    private bool isJumping = false;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
     public override void OnEnter(PlayerController player)
     {
         player.Anim.SetBool("isJumping", false);
-        player.Anim.applyRootMotion = false;
+        player.Anim.SetBool("isLocomotion", true);
+        player.Anim.applyRootMotion = true;
         isTransitioning = false;
+        isJumping = false;
         isRootMotion = false;
     }
 
     public override void OnExit(PlayerController player)
     {
-        isRootMotion = false;
-        isTransitioning = false;
-    }
-
-    public override void HandleMessage(PlayerController player, string msg)
-    {
-        /*if (msg == "SLIDE" && !isRootMotion)
-        {
-            player.StateMachine.GoToState<Sliding>();
-            isTransitioning = true;
-        }*/
+        player.Anim.SetBool("isLocomotion", false);
     }
 
     public override void Update(PlayerController player)
@@ -39,26 +33,49 @@ public class Locomotion : StateBase<PlayerController>
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
         AnimatorTransitionInfo transInfo = player.Anim.GetAnimatorTransitionInfo(0);
 
-        if (player.isMovingAuto || isTransitioning)
+        player.IsFootIK = UMath.GetHorizontalMag(player.Velocity) < 0.1f;
+
+        if (player.isMovingAuto)
+            return;
+
+        if (isJumping && !player.adjustingRot)
+        {
+            player.StateMachine.GoToState<Jumping>();
+            return;
+        }
+
+        if (isTransitioning)
         {
             if (animState.IsName("HangLoop"))
             {
                 player.StateMachine.GoToState<Climbing>();
             }
-            return;
-        }
-        else if (animState.IsName("FastLand"))
-        {
-            player.MoveGrounded(0f);
+            else if (!player.isMovingAuto)
+            {
+                player.Anim.SetTrigger("ToLedgeForward");
+                player.Anim.applyRootMotion = true;
+                player.DisableCharControl();
+            }
             return;
         }
         else if (!player.Grounded && player.groundDistance > player.charControl.stepOffset && !isRootMotion)
         {
+            player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
             player.StateMachine.GoToState<InAir>();
             return;
         }
         else if (player.Grounded)
         {
+            if (isStairs = player.groundDistance < 1f && player.GroundHit.collider.CompareTag("Stairs"))
+            {
+                player.Anim.SetBool("isStairs", true);
+            }
+            else
+            {
+                player.Anim.SetBool("isStairs", false);
+                player.Anim.SetFloat("Stairs", 0f, 0.1f, Time.deltaTime);
+            }
+
             if (player.groundAngle > player.charControl.slopeLimit && !isRootMotion)
             {
                 player.StateMachine.GoToState<Sliding>();
@@ -75,39 +92,34 @@ public class Locomotion : StateBase<PlayerController>
             : Input.GetButton("Sprint") ? player.sprintSpeed
             : player.runSpeed;
 
-        player.Anim.SetFloat("Forward", Input.GetAxisRaw("Vertical"));
-
-        if (animState.IsName("Locomotion") || animState.IsName("RunJump_to_Run") || transInfo.IsName("FallMed -> RunJump_to_Run")
-            || transInfo.IsName("Turn180 -> Locomotion"))
-        {
-            player.MoveGrounded(moveSpeed);
-            player.RotateToVelocityGround();
-            player.Anim.applyRootMotion = false;
-        }
-        else
-        {
-            player.MoveGrounded(0f);
-            player.Velocity = Vector3.down * player.gravity;
-            player.Anim.applyRootMotion = true;
-        }
-
+        player.MoveGrounded(moveSpeed);
+        player.RotateToVelocityGround();
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);
-        StopLaraFloating(player);
+
+        if (isStairs)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(player.transform.position + player.transform.forward * 0.2f + 0.2f * Vector3.up,
+                Vector3.down, out hit, 1f))
+            {
+                player.Anim.SetFloat("Stairs", hit.point.y < player.transform.position.y ? -1f : 1f, 0.1f, Time.deltaTime);
+                Debug.Log(player.transform.position.y - hit.point.y);
+            }
+        }
 
         if (Input.GetButtonDown("Crouch"))
         {
             Vector3 start = player.transform.position
-                + player.transform.forward * 0.4f
+                + player.transform.forward * 0.5f
                 + Vector3.down * 0.1f;
             if (ledgeDetector.FindLedgeAtPoint(start, -player.transform.forward, 0.5f, 0.2f))
             {
-                player.DisableCharControl();
-                player.Anim.SetTrigger("ToLedgeForward");
-                player.Anim.applyRootMotion = true;
-                player.MoveWait(ledgeDetector.GrabPoint - player.transform.forward * 0.2f,
-                    Quaternion.LookRotation(-ledgeDetector.Direction,Vector3.up));
+                Quaternion ledgeRot = Quaternion.LookRotation(-ledgeDetector.Direction, Vector3.up);
+                Quaternion actualRot = Quaternion.Euler(0f, ledgeRot.eulerAngles.y, 0f);
                 isTransitioning = true;
+                player.MoveWait(ledgeDetector.GrabPoint - player.transform.forward * 0.2f,
+                    actualRot);
                 return;
             }
             else
@@ -117,48 +129,35 @@ public class Locomotion : StateBase<PlayerController>
         }
 
         if (Input.GetButtonDown("Jump") && !isRootMotion)
-            player.StateMachine.GoToState<Jumping>();
-    }
-
-    private void StopLaraFloating(PlayerController player)
-    {
-        Vector3 centerStart = player.transform.position + Vector3.up * 0.2f;
-
-        List<Vector3> sideChecks = new List<Vector3>();
-        sideChecks.Add(centerStart + player.transform.forward * player.charControl.radius);
-        //sideChecks.Add(centerStart - player.transform.forward * player.charControl.radius);
-        sideChecks.Add(centerStart + player.transform.right * player.charControl.radius);
-        sideChecks.Add(centerStart - player.transform.right * player.charControl.radius);
-
-        bool push = true;
-
-        RaycastHit hit = new RaycastHit();
-        foreach (Vector3 v in sideChecks)
-        {
-            if (Physics.Raycast(v, Vector3.down, out hit, 2f))
-                push = false;
-        }
-
-        // Lara is floating off edge basically
-        if (/*hitCount == 1*/push && !player.Grounded)
-            player.Velocity = Mathf.Max(player.walkSpeed, UMath.GetHorizontalMag(player.Velocity)) * player.transform.forward;  // push Lara
+            isJumping = true;
     }
 
     private void LookForStepLedges(PlayerController player)
     {
-        if (Input.GetButtonDown("Jump") && !isRootMotion)
+        if (Input.GetButtonDown("Jump") && !isRootMotion && player.Anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
             isRootMotion = ledgeDetector.FindPlatformInfront(player.transform.position,
-                player.transform.forward, 2f);
+                player.transform.forward, 0.3f);
 
             if (isRootMotion)
             {
-                player.Anim.applyRootMotion = true;
                 float height = ledgeDetector.GrabPoint.y - player.transform.position.y;
 
-                if (height <= 1f)
+                // step can be runned over
+                if (height < player.charControl.stepOffset)
+                {
+                    isRootMotion = false;
+                    return;
+                } 
+                else
+                {
+                    player.transform.rotation = Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up);
+                    player.DisableCharControl(); // stops char controller collisions
+                }
+
+                if (height <= 0.9f)
                     player.Anim.SetTrigger("StepUpQtr");
-                else if (height <= 1.7f)
+                else if (height <= 1.5f)
                     player.Anim.SetTrigger("StepUpHlf");
                 else
                     player.Anim.SetTrigger("StepUpFull");
@@ -171,39 +170,14 @@ public class Locomotion : StateBase<PlayerController>
     private void HandleLedgeStepMotion(PlayerController player)
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
-        if (!waitingBool && isRootMotion && animState.IsName("Locomotion"))
+        if (!waitingBool && isRootMotion && animState.IsName("Idle"))
         {
-            player.Anim.applyRootMotion = false;
             player.EnableCharControl();
             isRootMotion = false;
         }
         else if (waitingBool && (animState.IsName("StepUp_Hlf") || animState.IsName("StepUp_Qtr")
-            || animState.IsName("StepUp_Full")))
+            || animState.IsName("StepUp_Full") || animState.IsName("RunStepUp_Qtr") || animState.IsName("RunStepUp_QtrM")))
         {
-            player.DisableCharControl();
-
-            float startTime, endTime;
-            Quaternion rotation = Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up);
-            if (animState.IsName("StepUp_Qtr"))
-            {
-                startTime = 0.1f;
-                endTime = 0.62f;
-            }
-            else if (animState.IsName("StepUp_Half"))
-            {
-                startTime = 0.23f;
-                endTime = 0.9f;
-            }
-            else
-            {
-                startTime = 0.14f;
-                endTime = 0.99f; 
-            }
-
-            player.Anim.MatchTarget(ledgeDetector.GrabPoint + (player.transform.forward * 0.1f),
-                    player.transform.rotation, AvatarTarget.Root, new MatchTargetWeightMask(Vector3.one, 1f), 
-                    startTime, endTime);
-
             waitingBool = false;
         }
     }

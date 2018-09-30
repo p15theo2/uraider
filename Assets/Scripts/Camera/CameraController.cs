@@ -33,6 +33,9 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (camState == CameraState.Freeze)
+            return;
+
         HandleMovement();
         HandleRotation();
     }
@@ -51,13 +54,20 @@ public class CameraController : MonoBehaviour
             && Mathf.Abs(Input.GetAxis("Mouse X")) == 0f)
             DoExtraRotation();
 
-        pivot.rotation = Quaternion.Slerp(pivot.rotation, Quaternion.Euler(xRot, yRot, 0.0f), rotationSmoothing * Time.deltaTime);
+        if (rotationSmoothing != 0f)
+            pivot.rotation = Quaternion.Slerp(pivot.rotation, Quaternion.Euler(xRot, yRot, 0.0f), rotationSmoothing * Time.deltaTime);
+        else
+            pivot.rotation = Quaternion.Euler(xRot, yRot, 0.0f);
+
         pivot.localPosition = Vector3.Lerp(pivot.localPosition, targetPivotPosition, Time.deltaTime * 2f);
     }
 
     private void HandleMovement()
     {
-        transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime * translationSmoothing);
+        if (translationSmoothing != 0f)
+            transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime * translationSmoothing);
+        else
+            transform.position = target.position;
     }
 
     private void DoExtraRotation()
@@ -90,6 +100,7 @@ public class CameraController : MonoBehaviour
 // enum incase of future extensions
 public enum CameraState
 {
+    Freeze,
     Grounded,
     Combat
 }

@@ -13,8 +13,6 @@ public class Climbing : StateBase<PlayerController>
     private bool isClimbingUp = false;
     private bool isFeetRoom = false;
     private float right = 0f;
-    private float grabForwardOffset = 0.11f;
-    private float grabUpOffset = 2.1f; // 1.78
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
@@ -59,7 +57,7 @@ public class Climbing : StateBase<PlayerController>
         {
             player.Anim.SetFloat("Speed", 0f);
 
-            if (animState.IsName("Locomotion"))
+            if (animState.IsName("Idle"))
             {
                 player.StateMachine.GoToState<Locomotion>();
             }
@@ -166,23 +164,25 @@ public class Climbing : StateBase<PlayerController>
         Debug.Log(ledgeDetector.GrabPoint.y - player.transform.position.y);
 
         RaycastHit hit;
-        Vector3 start = player.transform.position + Vector3.up * 1.86f;
+        Vector3 start = player.transform.position + Vector3.up * (player.hangUpOffset - 0.1f);
         Debug.DrawRay(start, player.transform.forward * 0.4f, Color.green);
         
-        if (ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 0.4f, 0.2f)
+        if (ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 0.2f, 0.2f)
             /*Physics.Raycast(start, player.transform.forward, out hit, 0.4f)*/)
         {
+            Quaternion targetRot = Quaternion.Euler(0f, Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up).eulerAngles.y, 0f);
+
             player.transform.rotation = Quaternion.Slerp(player.transform.rotation,
-                Quaternion.LookRotation(/*-hit.normal*/ledgeDetector.Direction, Vector3.up), 10f * Time.deltaTime);
+                targetRot, 10f * Time.deltaTime);
 
             player.transform.position = new Vector3(
                 ledgeDetector.GrabPoint.x
-                - (player.transform.forward.x * grabForwardOffset),
+                - (player.transform.forward.x * player.hangForwardOffset),
 
-                animState.IsName("HangLoop") ? ledgeDetector.GrabPoint.y - 1.975f : player.transform.position.y,
+                animState.IsName("HangLoop") ? ledgeDetector.GrabPoint.y - player.hangUpOffset : player.transform.position.y,
 
                 ledgeDetector.GrabPoint.z
-                - (player.transform.forward.z * grabForwardOffset)
+                - (player.transform.forward.z * player.hangForwardOffset)
                 );
         }
     }
