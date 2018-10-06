@@ -12,7 +12,7 @@ public class Combat : StateBase<PlayerController>
     {
         player.ForceWaistRotation = true;
         player.Anim.SetBool("isCombat", true);
-        player.Anim.applyRootMotion = false;
+        //player.Anim.applyRootMotion = false;
         player.Stats.ShowCanvas();
         player.pistolLHand.SetActive(true);
         player.pistolRHand.SetActive(true);
@@ -64,16 +64,6 @@ public class Combat : StateBase<PlayerController>
                 (target.position - player.transform.position).normalized, Vector3.up);
             player.camController.State = CameraState.Combat;
             player.Anim.SetBool("isTargetting", true);
-            if (Input.GetMouseButtonDown(0))
-            {
-                player.Anim.SetBool("isFiring", true);
-                leftPistol.Target = target.position;
-                rightPistol.Target = target.position;
-            }
-            else
-            {
-                player.Anim.SetBool("isFiring", false);
-            }
         }
         else
         {
@@ -82,6 +72,8 @@ public class Combat : StateBase<PlayerController>
             player.RotateToVelocityGround();
             player.Anim.SetBool("isTargetting", false);
         }
+
+        player.Anim.SetBool("isFiring", Input.GetMouseButton(0));
     }
 
     private void CheckForTargets(PlayerController player)

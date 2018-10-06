@@ -57,11 +57,12 @@ public class Jumping : StateBase<PlayerController>
             isGrabbing = true;
         }
 
-        bool isRunJump = animState.IsName("RunJump") || animState.IsName("RunJumpM") || animState.IsName("JumpUp")
+        bool isRunJump = animState.IsName("RunJump") || animState.IsName("RunJumpM")
             || animState.IsName("SprintJump") || animState.IsName("Dive");
         bool isStandJump = animState.IsName("StandJump") || transInfo.IsName("Still_Compress_Forward -> StandJump");
+        bool isJumpUp = animState.IsName("JumpUp");
 
-        if ((isRunJump|| isStandJump) && !hasJumped)
+        if ((isRunJump|| isStandJump || isJumpUp) && !hasJumped)
         {
             player.Anim.applyRootMotion = false;
             float curSpeed = UMath.GetHorizontalMag(player.Velocity);

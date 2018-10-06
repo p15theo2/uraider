@@ -26,18 +26,6 @@ public class InAir : StateBase<PlayerController>
         player.Anim.SetBool("isDive", false);
     }
 
-    public override void HandleMessage(PlayerController player, ControllerColliderHit msg)
-    {
-        /*if (Mathf.Abs(Vector3.Dot(Vector3.up, msg.normal)) <= 0.05f)
-        {
-            Debug.Log("OMG OUCH!");
-            if (player.Velocity.y > 0f)
-                player.Velocity = Vector3.zero;
-            else
-                player.Velocity.Scale(new Vector3(0f, 1f, 0f));
-        }*/
-    }
-
     public override void Update(PlayerController player)
     {
         if (haltUpdate)
@@ -53,8 +41,10 @@ public class InAir : StateBase<PlayerController>
 
         if (player.Grounded)
         {
-            if (player.Velocity.y < -16f)
+            if (player.Velocity.y < -player.deathVelocity)
+            {
                 player.StateMachine.GoToState<Dead>();
+            }
             else if (UMath.GroundAngle(player.GroundHit.normal) <= player.charControl.slopeLimit)
             {
                 // Stops player moving forward on landing
@@ -62,13 +52,12 @@ public class InAir : StateBase<PlayerController>
                     player.Velocity = Vector3.down * player.gravity;
                 
                 player.StateMachine.GoToState<Locomotion>();
-                return;
             }
             else
             {
                 player.StateMachine.GoToState<Sliding>();
-                return;
             }
+            return;
                 
         } 
         else if (Input.GetButtonDown("Action") && !player.Anim.GetBool("isDive"))

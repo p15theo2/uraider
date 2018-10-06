@@ -18,6 +18,7 @@ public class Locomotion : StateBase<PlayerController>
         player.Anim.SetBool("isJumping", false);
         player.Anim.SetBool("isLocomotion", true);
         player.Anim.applyRootMotion = true;
+        player.IsFootIK = true;
         isTransitioning = false;
         isJumping = false;
         isRootMotion = false;
@@ -26,6 +27,7 @@ public class Locomotion : StateBase<PlayerController>
     public override void OnExit(PlayerController player)
     {
         player.Anim.SetBool("isLocomotion", false);
+        player.IsFootIK = false;
     }
 
     public override void Update(PlayerController player)
@@ -93,7 +95,8 @@ public class Locomotion : StateBase<PlayerController>
             : player.runSpeed;
 
         player.MoveGrounded(moveSpeed);
-        player.RotateToVelocityGround();
+        if (player.targetSpeed > 0.1f)
+            player.RotateToVelocityGround();
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);
 
@@ -137,7 +140,7 @@ public class Locomotion : StateBase<PlayerController>
         if (Input.GetButtonDown("Jump") && !isRootMotion && player.Anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
             isRootMotion = ledgeDetector.FindPlatformInfront(player.transform.position,
-                player.transform.forward, 0.3f);
+                player.transform.forward, 2f);
 
             if (isRootMotion)
             {

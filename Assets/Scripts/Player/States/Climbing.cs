@@ -95,16 +95,16 @@ public class Climbing : StateBase<PlayerController>
 
     private void HandleCorners(PlayerController player)
     {
-        Vector3 start = player.transform.position + (Vector3.up * 1.86f) - (player.transform.right * 0.24f);
+        Vector3 start = player.transform.position + (Vector3.up * 2f) - (player.transform.right * 0.24f);
         ledgeLeft = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 0.2f, 0.2f);
 
-        start = player.transform.position + (Vector3.up * 1.86f) - (player.transform.forward * 0.15f);
+        start = player.transform.position + (Vector3.up * 2f) - (player.transform.forward * 0.15f);
         ledgeInnerLeft = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 0.2f);
 
-        start = player.transform.position + (Vector3.up * 1.86f) + (player.transform.right * 0.24f);
+        start = player.transform.position + (Vector3.up * 2f) + (player.transform.right * 0.24f);
         ledgeRight = ledgeDetector.FindLedgeAtPoint(start, player.transform.forward, 0.2f, 0.2f);
 
-        start = player.transform.position + (Vector3.up * 1.86f) - (player.transform.forward * 0.15f);
+        start = player.transform.position + (Vector3.up * 2f) - (player.transform.forward * 0.15f);
         ledgeInnerRight = ledgeDetector.FindLedgeAtPoint(start, player.transform.right, 0.34f, 0.2f);
 
         if (right < -0.1f)

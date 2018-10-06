@@ -26,7 +26,7 @@ public class Ladder : StateBase<PlayerController>
 
         if (isTransitioning)
         {
-            if (animState.IsName("Locomotion"))
+            if (animState.IsName("Idle"))
                 player.StateMachine.GoToState<Locomotion>();
 
             return;
@@ -55,10 +55,6 @@ public class Ladder : StateBase<PlayerController>
 
     public bool CheckForLedge(Vector3 start)
     {
-        if (Physics.Raycast(start, Vector3.down, 0.6f))
-        {
-            return true;
-        }
-        return false;
+        return Physics.Raycast(start, Vector3.down, 0.6f);
     }
 }

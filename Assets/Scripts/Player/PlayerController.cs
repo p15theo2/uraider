@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
     public float slideSpeed = 2f;
     [Header("Physics")]
     public float gravity = 9.81f;
+    public float deathVelocity = 12f;
     [Header("Jump Speeds")]
     public float jumpYVel = 5f;
     public float jumpZBoost = 0.8f;
@@ -54,6 +55,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public bool isMovingAuto = false;
     public float targetAngle = 0f;
+    public float targetSpeed = 0f;
 
     private StateMachine<PlayerController> stateMachine;
     [HideInInspector]
@@ -227,8 +229,6 @@ public class PlayerController : MonoBehaviour
                 velocity = Vector3.Lerp(velocity, direction * walkSpeed * tRate, 10f * Time.deltaTime);
                 distance = Vector3.Distance(transform.position, point);
                 anim.SetFloat("Speed", velocity.magnitude);
-                Debug.Log(velocity);
-                Debug.Log(anim.applyRootMotion);
             }
             else
             {
@@ -265,10 +265,13 @@ public class PlayerController : MonoBehaviour
     float vertValue = 0f;
     float speed = 0f;
 
-    public Vector3 TargetMovementVector(float speed)
+    public Vector3 TargetMovementVector(float speed, float smoothing = 6f)
     {
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = cam.right;
+
+        float forwardTarget = Input.GetAxisRaw("Vertical");
+        float rightTarget = Input.GetAxisRaw("Horizontal");
 
         turnValue = Mathf.Lerp(turnValue, Input.GetAxisRaw("Horizontal"), Time.deltaTime * 6f);
         vertValue = Mathf.Lerp(vertValue, Input.GetAxisRaw("Vertical"), Time.deltaTime * 6f);
@@ -287,7 +290,7 @@ public class PlayerController : MonoBehaviour
         return targetVector;
     }
 
-    public Vector3 RawTargetVector()
+    public Vector3 RawTargetVector(float speed = 1f)
     {
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = cam.right;
@@ -296,6 +299,7 @@ public class PlayerController : MonoBehaviour
             + camRight * Input.GetAxisRaw("Horizontal");
         targetVector.Normalize();
         targetVector.y = 0f;
+        targetVector *= speed;
 
         return targetVector;
     }
@@ -313,44 +317,55 @@ public class PlayerController : MonoBehaviour
         bool turning = animState.IsName("IdleTurns") || animState.IsName("RunTurns");
 
         targetAngle = Vector3.SignedAngle(transform.forward, RawTargetVector(), Vector3.up);
+        targetSpeed = UMath.GetHorizontalMag(RawTargetVector(speed));
 
         holdRotation = Mathf.Abs(targetAngle) > (animState.IsName("Idle") ? 80f : 170f) || turning;
         
         anim.SetFloat("SignedTargetAngle", targetAngle, turning ? 1000000f : 0, Time.deltaTime);
         anim.SetFloat("TargetAngle", Mathf.Abs(targetAngle), turning ? 1000000f : 0, Time.deltaTime);
+        anim.SetFloat("TargetSpeed", targetSpeed);
 
         if (UMath.GetHorizontalMag(velocity) < 0.1f)
         {
-            if (!adjustingRot && targetVector.magnitude > 0.1f && targetAngle > 5f)
+            if (!adjustingRot && targetVector.magnitude > 0.1f && Mathf.Abs(targetAngle) > 5f)
             {
                 adjustingRot = true;
-                velocity = transform.forward * 3f;  // Player will rotate smoothly from idle
+                velocity = Mathf.Abs(targetAngle) > 80f ? targetVector : transform.forward * 3f;
+                
             }
             else if (UMath.GetHorizontalMag(targetVector) < 0.1f)
             {
                 velocity = Vector3.zero;
             }
         }
-        else if (targetAngle > 20f)
+        else if (Mathf.Abs(targetAngle) > 20f)
         {
             adjustingRot = true;
         }
 
-        if (adjustingRot && !turning)
+        if (turning)
+            adjustingRot = false; // Stops turning code clashing with root motion
+
+        if (!turning)
         {
-            velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * smoothing);
-            if (Vector3.Angle(velocity, targetVector) < 5f)
-                adjustingRot = false;
-        }
-        else
-        {
-            velocity = targetVector;
+            if (adjustingRot)
+            {
+                velocity = Vector3.Slerp(velocity, targetVector, Time.deltaTime * smoothing);
+                if (Vector3.Angle(velocity, targetVector) < 5f)
+                {
+                    adjustingRot = false;
+                }
+            }
+            else
+            {
+                velocity = targetVector;
+            }
         }
         
         anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity), 0.1f, Time.deltaTime);
-        anim.SetFloat("TargetSpeed", UMath.GetHorizontalMag(targetVector));
+        
 
-        if (pushDown /*&& groundDistance < charControl.stepOffset*/)
+        if (pushDown)
             velocity.y = -gravity;  // so charControl is grounded consistently
     }
 
