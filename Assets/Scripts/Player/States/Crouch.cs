@@ -32,7 +32,7 @@ public class Crouch : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
-        if(!Input.GetButton("Crouch"))
+        if(!Input.GetKey(player.playerInput.crouch))
         {
             if (!Physics.Raycast(player.transform.position, Vector3.up, 1.8f))
             {

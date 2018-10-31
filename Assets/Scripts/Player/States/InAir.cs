@@ -5,13 +5,14 @@ using UnityEngine;
 public class InAir : StateBase<PlayerController>
 {
     private bool haltUpdate = false;
+    private bool screamed = false;
 
     public override void OnEnter(PlayerController player)
     {
-        Debug.Log("In Air");
+        
         player.Anim.applyRootMotion = false;
         haltUpdate = false;
-        //player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
+        screamed = false;
     }
 
     public override void OnExit(PlayerController player)
@@ -28,27 +29,37 @@ public class InAir : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
+        Debug.Log("In Air");
+
         if (haltUpdate)
             return;
+
+        if (player.Velocity.y < -player.deathVelocity && !screamed)
+        {
+            player.SFX.PlayScreamSound();
+            screamed = true;
+        }
 
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
         player.ApplyGravity(player.gravity);
 
         player.Anim.SetFloat("YSpeed", player.Velocity.y);
-        float targetSpeed = UMath.GetHorizontalMag(player.TargetMovementVector(player.runSpeed));
+        float targetSpeed = UMath.GetHorizontalMag(player.RawTargetVector() * player.runSpeed);
         player.Anim.SetFloat("TargetSpeed", targetSpeed);
 
         if (player.Grounded)
         {
             if (player.Velocity.y < -player.deathVelocity)
             {
+                player.GetComponent<AudioSource>().Stop();
+                player.SFX.PlayHitGroundSound();
                 player.StateMachine.GoToState<Dead>();
             }
             else if (UMath.GroundAngle(player.GroundHit.normal) <= player.charControl.slopeLimit)
             {
                 // Stops player moving forward on landing
-                if (Input.GetAxisRaw("Vertical") < 0.1f && Input.GetAxisRaw("Horizontal") < 0.1f)
+                if (Input.GetAxisRaw(player.playerInput.verticalAxis) < 0.1f && Input.GetAxisRaw(player.playerInput.horizontalAxis) < 0.1f)
                     player.Velocity = Vector3.down * player.gravity;
                 
                 player.StateMachine.GoToState<Locomotion>();
@@ -60,7 +71,7 @@ public class InAir : StateBase<PlayerController>
             return;
                 
         } 
-        else if (Input.GetButtonDown("Action") && !player.Anim.GetBool("isDive"))
+        else if (Input.GetKeyDown(player.playerInput.action) && !player.Anim.GetBool("isDive"))
         {
             player.StateMachine.GoToState<Grabbing>();
             return;

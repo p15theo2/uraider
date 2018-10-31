@@ -10,6 +10,13 @@ public class CameraController : MonoBehaviour
     public float rotationSmoothing = 30f;
     public float translationSmoothing = 30f;
     public bool LAUTurning = true;
+    public bool isSplit = false;
+    public string MouseX = "Mouse X";
+    public string MouseY = "Mouse Y";
+
+    [Header("Split Variables")]
+    public Vector2 position;
+    public Vector2 size;
 
     public Transform target;
 
@@ -19,13 +26,17 @@ public class CameraController : MonoBehaviour
     private Transform pivot;
     private Vector3 pivotOrigin;
     private Vector3 targetPivotPosition;
+    private Vector3 forceDirection;
     private Camera cam;
     private CameraState camState;
 
     private void Start()
     {
+        forceDirection = Vector3.zero;
         camState = CameraState.Grounded;
         cam = GetComponentInChildren<Camera>();
+        if (isSplit)
+            cam.rect = new Rect(position, size);
         pivot = cam.transform.parent;
         pivotOrigin = pivot.localPosition;
         targetPivotPosition = pivot.localPosition;
@@ -43,21 +54,25 @@ public class CameraController : MonoBehaviour
     private void HandleRotation()
     {
         if (camState == CameraState.Grounded)
-            yRot += Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
+            yRot += Input.GetAxis(MouseX) * rotationSpeed * Time.deltaTime;
         else
             yRot = target.rotation.eulerAngles.y;
 
-        xRot -= Input.GetAxis("Mouse Y") * rotationSpeed * Time.deltaTime; // Negative so mouse up = cam down
+        xRot -= Input.GetAxis(MouseY) * rotationSpeed * Time.deltaTime; // Negative so mouse up = cam down
         xRot = Mathf.Clamp(xRot, yMin, yMax);
 
         if (LAUTurning && camState == CameraState.Grounded 
-            && Mathf.Abs(Input.GetAxis("Mouse X")) == 0f)
+            && Mathf.Abs(Input.GetAxis(MouseX)) == 0f)
             DoExtraRotation();
 
+        Quaternion targetRot = forceDirection != Vector3.zero ? 
+            Quaternion.LookRotation(forceDirection) 
+            : Quaternion.Euler(xRot, yRot, 0.0f);
+
         if (rotationSmoothing != 0f)
-            pivot.rotation = Quaternion.Slerp(pivot.rotation, Quaternion.Euler(xRot, yRot, 0.0f), rotationSmoothing * Time.deltaTime);
+            pivot.rotation = Quaternion.Slerp(pivot.rotation, targetRot, rotationSmoothing * Time.deltaTime);
         else
-            pivot.rotation = Quaternion.Euler(xRot, yRot, 0.0f);
+            pivot.rotation = targetRot;
 
         pivot.localPosition = Vector3.Lerp(pivot.localPosition, targetPivotPosition, Time.deltaTime * 2f);
     }
@@ -72,7 +87,7 @@ public class CameraController : MonoBehaviour
 
     private void DoExtraRotation()
     {
-        yRot += 1.0f * Input.GetAxis("Horizontal");
+        yRot += 2.0f * Input.GetAxis(target.GetComponent<PlayerInput>().horizontalAxis);
     }
 
     public void PivotOnHead()
@@ -94,6 +109,12 @@ public class CameraController : MonoBehaviour
     {
         get { return camState; }
         set { camState = value; }
+    }
+
+    public Vector3 ForceDirection
+    {
+        get { return forceDirection; }
+        set { forceDirection = value; }
     }
 }
 

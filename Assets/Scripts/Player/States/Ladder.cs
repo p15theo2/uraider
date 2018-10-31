@@ -5,6 +5,9 @@ using UnityEngine;
 public class Ladder : StateBase<PlayerController>
 {
     private bool isTransitioning = false;
+    private bool isIdle = false;
+
+    private LadderVolume currentLadder;
 
     public override void OnEnter(PlayerController player)
     {
@@ -12,11 +15,14 @@ public class Ladder : StateBase<PlayerController>
         player.Anim.applyRootMotion = true;
         player.DisableCharControl();
         isTransitioning = false;
+        isIdle = false;
+        currentLadder = LadderVolume.CURRENT_LADDER;
     }
 
     public override void OnExit(PlayerController player)
     {
         player.Anim.SetBool("isLadder", false);
+        player.Anim.SetFloat("Speed", 0f);
         player.EnableCharControl();
     }
 
@@ -26,35 +32,72 @@ public class Ladder : StateBase<PlayerController>
 
         if (isTransitioning)
         {
-            if (animState.IsName("Idle"))
+            player.Velocity = Vector3.zero;
+
+            if (isIdle)
                 player.StateMachine.GoToState<Locomotion>();
+
+            if (animState.IsName("Idle"))
+            {
+                player.EnableCharControl();
+                isIdle = true;
+            }
 
             return;
         }
 
-        player.Anim.SetFloat("Forward", Input.GetAxisRaw("Vertical"));
-        player.Anim.SetFloat("Right", Input.GetAxisRaw("Horizontal"));
+        Vector3 ladderAdjusted = currentLadder.transform.position - currentLadder.transform.forward * 0.4f;
+        player.transform.position = Vector3.Lerp(player.transform.position, 
+            new Vector3(ladderAdjusted.x, player.transform.position.y, ladderAdjusted.z), 5f * Time.deltaTime);
+        player.transform.rotation = Quaternion.Lerp(player.transform.rotation, 
+            Quaternion.LookRotation(currentLadder.transform.forward), 5f * Time.deltaTime);
 
-        if (Input.GetAxisRaw("Horizontal") < -0.1f)
+        float forward = Input.GetAxisRaw(player.playerInput.verticalAxis);
+        float right = Input.GetAxisRaw(player.playerInput.horizontalAxis);
+
+        if (Input.GetKeyDown(player.playerInput.crouch) && animState.IsName("LadderIdle"))
         {
-            if (CheckForLedge(player.transform.position - (player.transform.right * 0.6f))) 
-            {
-                player.Anim.SetTrigger("OffLeft");
-                isTransitioning = true;
-            }
+            player.Velocity = Vector3.zero;
+            player.StateMachine.GoToState<InAir>();
+            return;
         }
-        else if (Input.GetAxisRaw("Horizontal") > 0.1f)
+
+        if (player.transform.position.y > currentLadder.transform.position.y
+            + (currentLadder.MainCollider.size.y - player.charControl.height))
         {
-            if (CheckForLedge(player.transform.position + (player.transform.right * 0.6f)))
+            forward = Mathf.Clamp(forward, -1f, 0f);
+        }
+        else if (player.transform.position.y < currentLadder.transform.position.y + 1f)
+        {
+            forward = Mathf.Clamp01(forward);
+        }
+
+        player.Anim.SetFloat("Forward", forward);
+        player.Anim.SetFloat("Right", right);
+
+        if (animState.IsName("LadderIdle"))
+        {
+            if (right < -0.1f)
             {
-                player.Anim.SetTrigger("OffRight");
-                isTransitioning = true;
+                if (CheckForLedge(player.transform.position - (player.transform.right * 0.6f)))
+                {
+                    player.Anim.SetTrigger("OffLeft");
+                    isTransitioning = true;
+                }
+            }
+            else if (right > 0.1f)
+            {
+                if (CheckForLedge(player.transform.position + (player.transform.right * 0.6f)))
+                {
+                    player.Anim.SetTrigger("OffRight");
+                    isTransitioning = true;
+                }
             }
         }
     }
 
     public bool CheckForLedge(Vector3 start)
     {
-        return Physics.Raycast(start, Vector3.down, 0.6f);
+        return Physics.Raycast(start + Vector3.up * 0.5f, Vector3.down, 1f);
     }
 }

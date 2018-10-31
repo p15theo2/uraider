@@ -16,7 +16,7 @@ public class PlayerLight : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetButtonDown("Flare"))
+        if (Input.GetKeyDown(GetComponentInParent<PlayerInput>().pls))
         {
             isOn = !isOn;
             spotLight.SetActive(isOn);

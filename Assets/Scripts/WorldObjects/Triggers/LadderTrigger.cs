@@ -4,27 +4,37 @@ using UnityEngine;
 
 public class LadderTrigger : MonoBehaviour
 {
-    public static LadderTrigger CURRENT_LADDER;
+    public bool isSide = false;
 
-    private void OnTriggerStay(Collider other)
+    private bool starting = false;
+
+    void OnTriggerStay(Collider col)
     {
-        if (Input.GetButtonDown("Action"))
+        if (col.CompareTag("Player") 
+            && !col.gameObject.GetComponent<PlayerController>().StateMachine.IsInState<Locomotion>())
+            starting = true;
+
+        if (!starting && col.CompareTag("Player") && Vector3.Dot(transform.forward, col.transform.forward) > 0f)
         {
-            StartCoroutine(ClimbLadder(other.GetComponent<PlayerController>()));
+            if (!col.gameObject.GetComponent<PlayerController>().StateMachine.IsInState<Locomotion>())
+                return;
+            ClimbLadder(col.gameObject.GetComponent<PlayerController>());
+            starting = true;
         }
     }
 
-    private IEnumerator ClimbLadder(PlayerController player)
+    private void OnTriggerExit(Collider other)
     {
-        player.MoveWait(transform.position - transform.forward * 0.4f, Quaternion.LookRotation(transform.forward),
-            0.4f, 16f);
+        starting = false;
+    }
 
-        while (player.isMovingAuto)
-        {
-            yield return null;
-        }
+    private void ClimbLadder(PlayerController player)
+    {
+        player.Anim.applyRootMotion = false;
 
-        CURRENT_LADDER = this;
+        LadderVolume.CURRENT_LADDER = transform.parent.gameObject.GetComponent<LadderVolume>();
+
+        player.Anim.SetTrigger(isSide ? "LadderSide" : "LadderFront");
 
         player.StateMachine.GoToState<Ladder>();
     }

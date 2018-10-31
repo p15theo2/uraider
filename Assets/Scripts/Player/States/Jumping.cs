@@ -52,7 +52,7 @@ public class Jumping : StateBase<PlayerController>
             player.Anim.SetBool("isDive", true);
         }
 
-        if (!player.autoLedgeTarget && Input.GetButton("Action"))
+        if (!player.autoLedgeTarget && Input.GetKey(player.playerInput.action))
         {
             isGrabbing = true;
         }
@@ -89,6 +89,12 @@ public class Jumping : StateBase<PlayerController>
                     : isStandJump ? 3f
                     : 0.1f;
                 float yVel = player.jumpYVel;
+
+                if (player.RawTargetVector().magnitude > 0.5f && isStandJump)
+                {
+                    Quaternion rotationTarget = Quaternion.LookRotation(player.RawTargetVector(), Vector3.up);
+                    player.transform.rotation = rotationTarget;
+                }
 
                 player.Velocity = player.transform.forward * zVel
                     + Vector3.up * yVel;

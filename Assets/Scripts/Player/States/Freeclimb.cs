@@ -38,14 +38,11 @@ class Freeclimb : StateBase<PlayerController>
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-
-        Debug.Log(isClimbingUp);
+        float horizontal = Input.GetAxis(player.playerInput.horizontalAxis);
+        float vertical = Input.GetAxis(player.playerInput.verticalAxis);
 
         if (isTransition)
         {
-            Debug.Log("trans me");
             if (animState.IsName("Freeclimb_to_Slant") || animState.IsName("Slantclimb_to_Freeclimb")
                 || animState.IsName("Slantclimb_to_Freeclimb_Right"))
             {
@@ -60,8 +57,7 @@ class Freeclimb : StateBase<PlayerController>
 
         if (isClimbingUp)
         {
-            Debug.Log("I climb up now");
-            if (animState.IsName("Locomotion"))
+            if (animState.IsName("Idle"))
             {
                 player.Anim.SetBool("isClimbingUp", false);
                 player.StateMachine.GoToState<Locomotion>();
@@ -69,7 +65,7 @@ class Freeclimb : StateBase<PlayerController>
             return;
         }
 
-        if (Input.GetButtonDown("Crouch"))
+        if (Input.GetKeyDown(player.playerInput.crouch) && animState.IsName("HangLoop"))
         {
             player.StateMachine.GoToState<InAir>();
             return;
@@ -78,7 +74,7 @@ class Freeclimb : StateBase<PlayerController>
         RaycastHit hitTop;
         Vector3 slantCheckStart = player.transform.position + 1.5f * Vector3.up;
         Vector3 flatCheckStart = player.transform.position + 2f * Vector3.up - player.transform.forward * 0.2f;
-        if (vertical > 0.1f && ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * 1.4f,
+        if (vertical > 0.1f && ledgeDetector.FindLedgeAtPoint(player.transform.position + Vector3.up * 1.5f,
             player.transform.forward,
             0.6f,
             0.2f, true))
@@ -115,6 +111,12 @@ class Freeclimb : StateBase<PlayerController>
 
         if (player.groundDistance <= 0.6f)
             vertical = Mathf.Clamp01(vertical);
+
+        if (Physics.Raycast(player.transform.position, -player.transform.right, 1f))
+            horizontal = Mathf.Clamp01(horizontal);
+
+        if (Physics.Raycast(player.transform.position, player.transform.right, 1f))
+            horizontal = Mathf.Clamp(horizontal, -1f, 0f);
 
         player.Anim.SetFloat("Forward", vertical);
         player.Anim.SetFloat("Right", horizontal);

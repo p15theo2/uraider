@@ -15,6 +15,8 @@ public class Locomotion : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
+        player.camController.LAUTurning = true;
+        player.EnableCharControl();
         player.Anim.SetBool("isJumping", false);
         player.Anim.SetBool("isLocomotion", true);
         player.Anim.applyRootMotion = true;
@@ -26,6 +28,7 @@ public class Locomotion : StateBase<PlayerController>
 
     public override void OnExit(PlayerController player)
     {
+        player.camController.LAUTurning = false;
         player.Anim.SetBool("isLocomotion", false);
         player.IsFootIK = false;
     }
@@ -50,13 +53,24 @@ public class Locomotion : StateBase<PlayerController>
         {
             if (animState.IsName("HangLoop"))
             {
+                player.Anim.ResetTrigger("ToLedgeForward");
                 player.StateMachine.GoToState<Climbing>();
             }
-            else if (!player.isMovingAuto)
+            else if (animState.IsName("LedgeOffFront"))
             {
-                player.Anim.SetTrigger("ToLedgeForward");
-                player.Anim.applyRootMotion = true;
-                player.DisableCharControl();
+                player.Anim.MatchTarget(new Vector3(
+                ledgeDetector.GrabPoint.x
+                - (ledgeDetector.Direction.x * player.hangForwardOffset),
+
+                ledgeDetector.GrabPoint.y - player.hangUpOffset,
+
+                ledgeDetector.GrabPoint.z
+                - (ledgeDetector.Direction.x * player.hangForwardOffset)
+                ),
+                Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up),
+                AvatarTarget.Root,
+                new MatchTargetWeightMask(Vector3.one, 1f),
+                0.2f, 1f);
             }
             return;
         }
@@ -66,42 +80,10 @@ public class Locomotion : StateBase<PlayerController>
             player.StateMachine.GoToState<InAir>();
             return;
         }
-        else if (player.Grounded)
+
+        if (isStairs = (player.groundDistance < 1f && player.GroundHit.collider.CompareTag("Stairs")))
         {
-            if (isStairs = player.groundDistance < 1f && player.GroundHit.collider.CompareTag("Stairs"))
-            {
-                player.Anim.SetBool("isStairs", true);
-            }
-            else
-            {
-                player.Anim.SetBool("isStairs", false);
-                player.Anim.SetFloat("Stairs", 0f, 0.1f, Time.deltaTime);
-            }
-
-            if (player.groundAngle > player.charControl.slopeLimit && !isRootMotion)
-            {
-                player.StateMachine.GoToState<Sliding>();
-                return;
-            }
-            else if (Input.GetButtonDown("Draw Weapon"))
-            {
-                player.StateMachine.GoToState<Combat>();
-                return;
-            }
-        }
-
-        float moveSpeed = Input.GetButton("Walk") ? player.walkSpeed
-            : Input.GetButton("Sprint") ? player.sprintSpeed
-            : player.runSpeed;
-
-        player.MoveGrounded(moveSpeed);
-        if (player.targetSpeed > 0.1f)
-            player.RotateToVelocityGround();
-        HandleLedgeStepMotion(player);
-        LookForStepLedges(player);
-
-        if (isStairs)
-        {
+            player.Anim.SetBool("isStairs", true);
             RaycastHit hit;
             if (Physics.Raycast(player.transform.position + player.transform.forward * 0.2f + 0.2f * Vector3.up,
                 Vector3.down, out hit, 1f))
@@ -110,28 +92,66 @@ public class Locomotion : StateBase<PlayerController>
                 Debug.Log(player.transform.position.y - hit.point.y);
             }
         }
+        else
+        {
+            player.Anim.SetBool("isStairs", false);
+            player.Anim.SetFloat("Stairs", 0f, 0.1f, Time.deltaTime);
+        }
 
-        if (Input.GetButtonDown("Crouch"))
+        if (player.groundAngle > player.charControl.slopeLimit && !isRootMotion)
+        {
+            player.StateMachine.GoToState<Sliding>();
+            return;
+        }
+        else if (Input.GetKeyDown(player.playerInput.drawWeapon) || Input.GetAxisRaw("CombatTrigger") > 0.1f)
+        {
+            player.StateMachine.GoToState<Combat>();
+            return;
+        }
+
+        float moveSpeed = Input.GetKey(player.playerInput.walk) ? player.walkSpeed
+            : player.runSpeed;
+
+        Debug.Log("do ground: " + player.Anim.GetFloat("TargetSpeed") + " " + player.Anim.GetFloat("Speed"));
+        if (!(transInfo.IsName("Crouch_to_Idle -> RunWalk") || animState.IsName("Crouch_to_Idle") || animState.IsName("RunWalk")
+           || animState.IsName("Crawl_to_Crouch") || transInfo.IsName("Crawl_to_Crouch -> Crouch_to_Idle")))
+        {
+            Debug.Log("Warning");
+        }
+        player.MoveGrounded(moveSpeed);
+        if (player.targetSpeed > 0.1f)
+            player.RotateToVelocityGround();
+        HandleLedgeStepMotion(player);
+        LookForStepLedges(player);
+
+        if (Input.GetKeyDown(player.playerInput.crouch))
         {
             Vector3 start = player.transform.position
                 + player.transform.forward * 0.5f
                 + Vector3.down * 0.1f;
             if (ledgeDetector.FindLedgeAtPoint(start, -player.transform.forward, 0.5f, 0.2f))
             {
-                Quaternion ledgeRot = Quaternion.LookRotation(-ledgeDetector.Direction, Vector3.up);
-                Quaternion actualRot = Quaternion.Euler(0f, ledgeRot.eulerAngles.y, 0f);
                 isTransitioning = true;
-                player.MoveWait(ledgeDetector.GrabPoint - player.transform.forward * 0.2f,
-                    actualRot);
+                player.Anim.SetTrigger("ToLedgeForward");
+                player.Anim.applyRootMotion = true;
+                player.DisableCharControl();
                 return;
             }
             else
             {
-                player.StateMachine.GoToState<Crouch>();
+                if (UMath.GetHorizontalMag(player.Velocity) < 2f)
+                    player.StateMachine.GoToState<Crouch>();
+                else
+                {
+                    player.Anim.SetTrigger("Slide");
+                    player.charControl.height = 0.5f;
+                    player.charControl.center = Vector3.up * 0.25f;
+                }
+
             }
         }
 
-        if (Input.GetButtonDown("Jump") && !isRootMotion)
+        if (Input.GetKeyDown(player.playerInput.jump) && !isRootMotion)
             isJumping = true;
     }
 

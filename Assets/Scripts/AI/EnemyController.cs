@@ -87,6 +87,7 @@ public class EnemyController : MonoBehaviour
             {
                 health = 0;
                 Anim.SetBool("isDead", true);
+                
             }
         }
     }

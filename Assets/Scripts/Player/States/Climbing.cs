@@ -40,6 +40,8 @@ public class Climbing : StateBase<PlayerController>
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
+        right = Input.GetAxisRaw(player.playerInput.horizontalAxis);
+
         if (isInCornering || isOutCornering)
         {
             if (animState.IsName("InCornerLeft") || animState.IsName("CornerLeft")
@@ -51,6 +53,7 @@ public class Climbing : StateBase<PlayerController>
             {
                 isOutCornering = isInCornering = false;
             }
+            player.Anim.SetFloat("Right", right);
             return;
         }
         else if (isClimbingUp)
@@ -65,11 +68,7 @@ public class Climbing : StateBase<PlayerController>
             return;
         }
 
-        right = Input.GetAxisRaw("Horizontal");
-        player.Anim.SetFloat("Right", right);
-
         RaycastHit hit;
-
         if (Physics.Raycast(player.transform.position, player.transform.forward, out hit, 0.5f))
         {
             player.Anim.SetBool("isFeetRoom", true);
@@ -84,11 +83,13 @@ public class Climbing : StateBase<PlayerController>
         HandleCorners(player);
         AdjustPosition(player);
 
-        if (Input.GetButton("Jump") && !isOutCornering && !isClimbingUp && right == 0.0f
+        player.Anim.SetFloat("Right", right);
+
+        if (Input.GetKey(player.playerInput.jump) && !isOutCornering && !isClimbingUp && right == 0.0f
             && ledgeDetector.CanClimbUp(player.transform.position, player.transform.forward))
             ClimbUp(player);
 
-        if (Input.GetButton("Crouch") && !isOutCornering && !isInCornering && !isClimbingUp
+        if (Input.GetKey(player.playerInput.crouch) && !isOutCornering && !isInCornering && !isClimbingUp
             && right == 0f)
             LetGo(player);
     }
@@ -116,8 +117,21 @@ public class Climbing : StateBase<PlayerController>
             }
             else if (!ledgeLeft)
             {
+                start = player.transform.position + (Vector3.up * 2f) - player.transform.right * 0.24f
+                    + player.transform.forward * 0.4f;
+
                 player.Anim.applyRootMotion = false; 
-                isOutCornering = true;
+                isOutCornering = ledgeDetector.FindLedgeAtPoint(start, player.transform.right, 0.34f, 0.2f);
+
+                if (!isOutCornering)
+                    right = Mathf.Clamp01(right);
+            }
+            else
+            {
+                start = player.transform.position + (Vector3.up * 2f) - (player.transform.forward * 0.15f);
+
+                if (Physics.Raycast(start, player.transform.right, 0.4f))
+                    right = Mathf.Clamp(right, -1f, 0);
             }
         }
         else if (right > 0.1f)
@@ -129,13 +143,27 @@ public class Climbing : StateBase<PlayerController>
             }
             else if (!ledgeRight)
             {
+                start = player.transform.position + (Vector3.up * 2f) + player.transform.right * 0.24f
+                    + player.transform.forward * 0.4f;
+
                 player.Anim.applyRootMotion = false; 
-                isOutCornering = true;
+                isOutCornering = ledgeDetector.FindLedgeAtPoint(start, -player.transform.right, 0.34f, 0.2f);
+
+                if (!isOutCornering)
+                    right = Mathf.Clamp(right, -1f, 0f);
+            }
+            else
+            {
+                start = player.transform.position + (Vector3.up * 2f) - (player.transform.forward * 0.15f);
+
+                if (Physics.Raycast(start, -player.transform.right, 0.4f))
+                    right = Mathf.Clamp01(right);
             }
         }
         else
         {
             isOutCornering = isInCornering = false;
+            player.Anim.applyRootMotion = true;
         }
 
         player.Anim.SetBool("isOutCorner", isOutCornering);

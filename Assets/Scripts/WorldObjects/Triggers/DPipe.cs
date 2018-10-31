@@ -6,6 +6,8 @@ public class DPipe : MonoBehaviour
 {
     public static DPipe CURRENT_DPIPE;
 
+    private bool starting = false;
+
     private BoxCollider solidCollider;
     private BoxCollider trigger;
 
@@ -22,21 +24,38 @@ public class DPipe : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (Input.GetButtonDown("Action"))
+        if (other.CompareTag("Player")
+            && !other.gameObject.GetComponent<PlayerController>().StateMachine.IsInState<Locomotion>())
+            starting = true;
+
+        if (!starting)
         {
-            StartCoroutine(ClimbPipe(other.GetComponent<PlayerController>()));
+            if (!other.gameObject.GetComponent<PlayerController>().StateMachine.IsInState<Locomotion>())
+                return;
+            ClimbPipe(other.GetComponent<PlayerController>());
+            starting = true;
         }
     }
 
-    private IEnumerator ClimbPipe(PlayerController player)
+    private void OnTriggerExit(Collider other)
     {
-        player.MoveWait(transform.position - transform.forward * 0.26f, Quaternion.LookRotation(transform.forward),
+        starting = false;
+    }
+
+    private void ClimbPipe(PlayerController player)
+    {
+        /*player.MoveWait(transform.position - transform.forward * 0.26f, Quaternion.LookRotation(transform.forward),
             0.4f, 16f);
 
         while (player.isMovingAuto)
         {
             yield return null;
-        }
+        }*/
+
+        player.Anim.applyRootMotion = false;
+
+        //player.transform.position = transform.position - transform.forward * 0.26f;
+        //player.transform.rotation = Quaternion.LookRotation(transform.forward);
 
         CURRENT_DPIPE = this;
 

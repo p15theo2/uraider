@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerStats))]
@@ -31,6 +32,9 @@ public class PlayerController : MonoBehaviour
     public float grabUpOffset = 1.56f;
     public float hangForwardOffset = 0.11f;
     public float hangUpOffset = 1.975f;
+    [Header("Axis Names")]
+    public string right = "Horizontal";
+    public string forward = "Vertical";
 
     [Header("References")]
     public CameraController camController;
@@ -42,6 +46,8 @@ public class PlayerController : MonoBehaviour
     public GameObject pistolRHand;
     public GameObject pistolLLeg;
     public GameObject pistolRLeg;
+    [Header("Ragdoll")]
+    public Rigidbody[] ragRigidBodies;
 
     private bool isGrounded = true;
     private bool isSliding = false;
@@ -60,6 +66,8 @@ public class PlayerController : MonoBehaviour
     private StateMachine<PlayerController> stateMachine;
     [HideInInspector]
     public CharacterController charControl;
+    [HideInInspector]
+    public PlayerInput playerInput;
     private Transform cam;
     private Animator anim;
     private PlayerStats playerStats;
@@ -70,12 +78,20 @@ public class PlayerController : MonoBehaviour
     private Vector3 velocity;
     [HideInInspector]
     public Vector3 slopeDirection;
+    [HideInInspector]
+    public bool useRootMotion = true;
     private RaycastHit groundHit;
+
+    private void Awake()
+    {
+        DisableRagdoll();
+    }
 
     private void Start()
     {
         charControl = GetComponent<CharacterController>();
-        cam = Camera.main.transform;
+        playerInput = GetComponent<PlayerInput>();
+        cam = camController.GetComponentInChildren<Camera>().transform;
         anim = GetComponent<Animator>();
         playerSFX = GetComponent<PlayerSFX>();
         pistols[0] = pistolLHand.GetComponent<Weapon>();
@@ -89,6 +105,7 @@ public class PlayerController : MonoBehaviour
 
     private void SetUpStateMachine()
     {
+        stateMachine.AddState(new Empty());
         stateMachine.AddState(new Locomotion());
         stateMachine.AddState(new Combat());
         stateMachine.AddState(new Climbing());
@@ -110,6 +127,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        Debug.Log(Input.GetAxisRaw("CombatTrigger"));
+
         CheckForGround();
 
         stateMachine.Update();
@@ -141,7 +160,7 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("groundDistance", groundDistance);
         anim.SetFloat("groundAngle", groundAngle);
     }
-
+    
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         stateMachine.SendMessage(hit);
@@ -167,6 +186,26 @@ public class PlayerController : MonoBehaviour
                 anim.SetIKRotation(AvatarIKGoal.RightFoot, Quaternion.LookRotation(transform.forward, hit.normal));
                 anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, curWeight);
             }
+        }
+    }
+
+    public void DisableRagdoll()
+    {
+        foreach (Rigidbody rb in ragRigidBodies)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.gameObject.GetComponent<Collider>().enabled = false;
+        }
+    }
+
+    public void EnableRagdoll()
+    {
+        foreach (Rigidbody rb in ragRigidBodies)
+        {
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            rb.gameObject.GetComponent<Collider>().enabled = true;
         }
     }
 
@@ -209,6 +248,8 @@ public class PlayerController : MonoBehaviour
     {
         anim.applyRootMotion = false;
 
+        velocity = Vector3.zero;
+
         float distance = Vector3.Distance(transform.position, point);
         float difference = Quaternion.Angle(transform.rotation, rotation);
         Vector3 direction = (point - transform.position).normalized;
@@ -221,14 +262,17 @@ public class PlayerController : MonoBehaviour
         {
             isNotOk = false;
 
-            if (Mathf.Abs(distance) > 0.1f)
+            if (Mathf.Abs(distance) > 0.05f)
             {
                 isNotOk = true;
-                direction = (point - transform.position).normalized;
+                /*direction = (point - transform.position).normalized;
                 velocity.y = 0f;
                 velocity = Vector3.Lerp(velocity, direction * walkSpeed * tRate, 10f * Time.deltaTime);
                 distance = Vector3.Distance(transform.position, point);
-                anim.SetFloat("Speed", velocity.magnitude);
+                anim.SetFloat("Speed", velocity.magnitude);*/
+                transform.position = Vector3.Lerp(transform.position, point, tRate * Time.deltaTime);
+                //anim.SetFloat("Speed", 0f, 0.4f, Time.deltaTime);
+                distance = Vector3.Distance(transform.position, point);
             }
             else
             {
@@ -247,9 +291,11 @@ public class PlayerController : MonoBehaviour
 
         transform.position = point;
         transform.rotation = rotation;
+        velocity = Vector3.zero;
 
         isMovingAuto = false;
         anim.SetBool("isWaiting", false);
+        //anim.SetFloat("Speed", 0f);
     }
 
     private void UpdateAnimator()
@@ -270,11 +316,11 @@ public class PlayerController : MonoBehaviour
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = cam.right;
 
-        float forwardTarget = Input.GetAxisRaw("Vertical");
-        float rightTarget = Input.GetAxisRaw("Horizontal");
+        float forwardTarget = Input.GetAxisRaw(playerInput.verticalAxis);
+        float rightTarget = Input.GetAxisRaw(playerInput.horizontalAxis);
 
-        turnValue = Mathf.Lerp(turnValue, Input.GetAxisRaw("Horizontal"), Time.deltaTime * 6f);
-        vertValue = Mathf.Lerp(vertValue, Input.GetAxisRaw("Vertical"), Time.deltaTime * 6f);
+        turnValue = Mathf.Lerp(turnValue, rightTarget, Time.deltaTime * 6f);
+        vertValue = Mathf.Lerp(vertValue, forwardTarget, Time.deltaTime * 6f);
         this.speed = Mathf.Lerp(this.speed, speed, Time.deltaTime * 4f);
 
         if (this.speed < 0.1f)
@@ -282,7 +328,7 @@ public class PlayerController : MonoBehaviour
 
         Vector3 targetVector = camForward * vertValue
             + camRight * turnValue;
-        if (targetVector.magnitude > 1.0f)
+        if (targetVector.magnitude > 1f)
             targetVector = targetVector.normalized;
         targetVector.y = 0f;
         targetVector *= this.speed;
@@ -295,9 +341,10 @@ public class PlayerController : MonoBehaviour
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = cam.right;
 
-        Vector3 targetVector = camForward * Input.GetAxisRaw("Vertical")
-            + camRight * Input.GetAxisRaw("Horizontal");
-        targetVector.Normalize();
+        Vector3 targetVector = camForward * Input.GetAxisRaw(playerInput.verticalAxis)
+            + camRight * Input.GetAxisRaw(playerInput.horizontalAxis);
+        if (targetVector.magnitude > 1f)
+            targetVector.Normalize();
         targetVector.y = 0f;
         targetVector *= speed;
 
@@ -327,7 +374,7 @@ public class PlayerController : MonoBehaviour
 
         if (UMath.GetHorizontalMag(velocity) < 0.1f)
         {
-            if (!adjustingRot && targetVector.magnitude > 0.1f && Mathf.Abs(targetAngle) > 5f)
+            if (!adjustingRot && targetVector.magnitude > 0.1f && Mathf.Abs(targetAngle) > 5f/*5*/)
             {
                 adjustingRot = true;
                 velocity = Mathf.Abs(targetAngle) > 80f ? targetVector : transform.forward * 3f;
@@ -338,7 +385,7 @@ public class PlayerController : MonoBehaviour
                 velocity = Vector3.zero;
             }
         }
-        else if (Mathf.Abs(targetAngle) > 20f)
+        else if (Mathf.Abs(targetAngle) > 90f /*20*/)
         {
             adjustingRot = true;
         }
@@ -361,8 +408,52 @@ public class PlayerController : MonoBehaviour
                 velocity = targetVector;
             }
         }
-        
-        anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity), 0.1f, Time.deltaTime);
+
+        if (!turning)
+            anim.SetFloat("Speed", UMath.GetHorizontalMag(velocity), 0.1f, Time.deltaTime);
+        else
+            anim.SetFloat("Speed", UMath.GetHorizontalMag(targetVector), 0.1f, Time.deltaTime);
+        anim.SetFloat("Right", 0f);
+
+        if (pushDown)
+            velocity.y = -gravity;  // so charControl is grounded consistently
+    }
+
+    public void MoveStrafeGround(float speed, bool pushDown = true, float smoothing = 10f)
+    {
+        Vector3 targetVector = TargetMovementVector(speed);
+
+        velocity.y = 0f; // So slerp is correct when pushDown is true
+
+        AnimatorStateInfo animState = anim.GetCurrentAnimatorStateInfo(0);
+
+        targetAngle = Vector3.SignedAngle(transform.forward, RawTargetVector(), Vector3.up);
+        targetSpeed = UMath.GetHorizontalMag(RawTargetVector(speed));
+
+        bool backwards = Vector3.Angle(cam.forward, targetVector) > 90f;
+
+        if (backwards)
+        {
+            targetVector = -targetVector;
+        }
+
+        Vector3 camForward = new Vector3(cam.forward.x, 0f, cam.forward.z);
+        anim.SetFloat("SignedTargetAngle", Vector3.SignedAngle(cam.forward, targetVector, Vector3.up));
+
+        anim.SetFloat("TargetSpeed", targetSpeed);
+
+        if (UMath.GetHorizontalMag(velocity) < 0.1f)
+        {
+            if (UMath.GetHorizontalMag(targetVector) < 0.1f)
+            {
+                velocity = Vector3.zero;
+            }
+        }
+
+        velocity = targetVector;
+
+        float speedCalc = UMath.GetHorizontalMag(velocity) * (backwards ? -1f : 1f);
+        anim.SetFloat("Speed", speedCalc, 0.1f, Time.deltaTime);
         
 
         if (pushDown)
@@ -371,8 +462,6 @@ public class PlayerController : MonoBehaviour
 
     public void MoveFree(float speed, float smoothing = 16f, float maxTurnAngle = 20f)
     {
-        int[] myArr = new int[10];
-
         Vector3 targetVector = cam.forward * Input.GetAxisRaw("Vertical")
             + cam.right * Input.GetAxisRaw("Horizontal");
         if (targetVector.magnitude > 1.0f)
@@ -414,6 +503,16 @@ public class PlayerController : MonoBehaviour
 
         anim.SetFloat("Speed", velocity.magnitude);
         anim.SetFloat("TargetSpeed", targetVector.magnitude);
+    }
+
+    public void RotateToCamera()
+    {
+        if (UMath.GetHorizontalMag(velocity) > 0.1f)
+        {
+            Quaternion target = Quaternion.LookRotation(cam.transform.forward, Vector3.up);
+            target = Quaternion.Euler(0f, target.eulerAngles.y, 0f);
+            transform.rotation = target;
+        }
     }
 
     public void RotateToVelocityGround(float smoothing = 0f)

@@ -8,11 +8,13 @@ public class Weapon : MonoBehaviour
     public float bulletDistance = 100f;
 
     private GameObject flash;
+    private WeaponSFX sfx;
     private Vector3 target;
 
     private void Start()
     {
         flash = transform.Find("Flash").gameObject;
+        sfx = GetComponent<WeaponSFX>();
     }
 
     public void Fire()
@@ -25,6 +27,7 @@ public class Weapon : MonoBehaviour
         Destroy(firedBullet, 2f);
 
         StartCoroutine(DoFlash());
+        sfx.PlayBang();
 
         RaycastHit hit;
         Debug.DrawRay(origin, direction * bulletDistance, Color.red);

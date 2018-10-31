@@ -16,7 +16,7 @@ public class AutoGrabbing : StateBase<PlayerController>
     {
         player.MinimizeCollider();
 
-        player.Anim.SetBool("isGrabbing", true);
+        player.Anim.SetBool("isAutoGrabbing", true);
 
         grabPoint = new Vector3(ledgeDetector.GrabPoint.x - (player.transform.forward.x * player.grabForwardOffset),
                         ledgeDetector.GrabPoint.y - player.grabUpOffset,
@@ -42,7 +42,7 @@ public class AutoGrabbing : StateBase<PlayerController>
     {
         player.MaximizeCollider();
 
-        player.Anim.SetBool("isGrabbing", false);
+        player.Anim.SetBool("isAutoGrabbing", false);
     }
 
     public override void Update(PlayerController player)
@@ -55,7 +55,7 @@ public class AutoGrabbing : StateBase<PlayerController>
             Vector3.Scale(player.transform.position, multiplier), 
             Vector3.Scale(startPosition, multiplier)));
 
-        if (Time.time - timeTracker >= player.grabTime /*distanceTravelled >= distanceToGo*/)
+        if (Time.time - timeTracker >= player.grabTime)
         {
             player.transform.position = grabPoint;
 

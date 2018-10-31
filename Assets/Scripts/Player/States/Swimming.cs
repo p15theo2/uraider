@@ -13,6 +13,7 @@ public class Swimming : StateBase<PlayerController>
     public override void OnEnter(PlayerController player)
     {
         player.Anim.SetBool("isSwimming", true);
+        player.Anim.applyRootMotion = false;
         isEntering = true;
         isClimbingUp = false;
         player.camController.PivotOnTarget();
@@ -22,14 +23,17 @@ public class Swimming : StateBase<PlayerController>
     public override void OnExit(PlayerController player)
     {
         player.Anim.SetBool("isSwimming", false);
+        player.Anim.applyRootMotion = true;
         isEntering = false;
         isTreading = false;
+        player.Anim.SetBool("isTreading", false);
         player.camController.PivotOnPivot();
     }
 
     public override void Update(PlayerController player)
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
+        Debug.Log("I swims now");
 
         if (isEntering)
         {
@@ -50,7 +54,7 @@ public class Swimming : StateBase<PlayerController>
                 player.DisableCharControl();
             }   
 
-            if (animState.IsName("Locomotion"))
+            if (animState.IsName("Idle"))
             {
                 player.EnableCharControl();
                 player.StateMachine.GoToState<Locomotion>();
@@ -61,6 +65,7 @@ public class Swimming : StateBase<PlayerController>
 
         if (!isTreading)
         {
+            Debug.Log("I no tread now");
             if (Input.GetButton("Jump"))
                 SwimUp(player);
             else if (Input.GetButton("Crouch"))
@@ -85,6 +90,8 @@ public class Swimming : StateBase<PlayerController>
         }
         else
         {
+            Debug.Log("I tread now");
+
             player.MoveGrounded(player.treadSpeed, false, 4f);
             player.RotateToVelocityGround();
 
