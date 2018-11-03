@@ -6,10 +6,6 @@ public class PlayerInventory : MonoBehaviour
 {
     public const int maxItems = 14;
 
-    public Canvas canvas;
-    public GameObject itemsHolder;
-    public GameObject itemPrefab;
-
     private bool activeGUI = false;
 
     private GameObject itemsUI;
@@ -17,9 +13,6 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
-        Cursor.visible = false;
-        canvas.enabled = false;
-        itemsUI = canvas.transform.Find("Items").gameObject;
         for (int i = 0; i < items.Length; i++)
         {
             items[i] = null;
@@ -28,38 +21,7 @@ public class PlayerInventory : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
-            activeGUI = !activeGUI;
-
-            if (activeGUI)
-            {
-                Time.timeScale = 0f;
-                canvas.enabled = true;
-
-                foreach (InventoryItem item in items)
-                {
-                    if (item == null)
-                        continue;
-
-                    GameObject itemUI = Instantiate(itemPrefab);
-
-                    itemUI.transform.SetParent(itemsHolder.transform, false);
-                    itemUI.GetComponent<ItemUIEditor>().SetImage(item.sprite);
-                    itemUI.GetComponent<ItemUIEditor>().SetText(item.itemName);
-                }
-            }
-            else
-            {
-                Time.timeScale = 1f;
-                canvas.enabled = false;
-            }
-        }
-
-        if (!activeGUI)
-        {
-            return;
-        }
+        
     }
 
     public void addItem(InventoryItem item)

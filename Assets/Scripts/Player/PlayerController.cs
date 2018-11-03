@@ -127,7 +127,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(Input.GetAxisRaw("CombatTrigger"));
+        if (RingMenu.isPaused)
+            return;
 
         CheckForGround();
 

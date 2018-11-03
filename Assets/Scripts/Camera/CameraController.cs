@@ -44,6 +44,9 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (RingMenu.isPaused)
+            return;
+
         if (camState == CameraState.Freeze)
             return;
 

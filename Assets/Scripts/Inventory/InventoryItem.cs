@@ -5,6 +5,8 @@ using UnityEngine;
 public abstract class InventoryItem : MonoBehaviour
 {
     public string itemName;
+    public bool destroyOnUse;
+
     public Sprite sprite;
 
     private void OnTriggerStay(Collider other)
@@ -23,5 +25,8 @@ public abstract class InventoryItem : MonoBehaviour
         }
     }
 
-    public abstract void Use(PlayerController player);
+    public virtual void Use(PlayerController player)
+    {
+
+    }
 }
