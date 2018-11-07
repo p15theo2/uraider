@@ -24,6 +24,7 @@ public class CameraController : MonoBehaviour
     private float xRot = 0.0f;
 
     private Transform pivot;
+    private Transform lookAt;
     private Vector3 pivotOrigin;
     private Vector3 targetPivotPosition;
     private Vector3 forceDirection;
@@ -56,16 +57,20 @@ public class CameraController : MonoBehaviour
 
     private void HandleRotation()
     {
-        if (camState == CameraState.Grounded)
-            yRot += Input.GetAxis(MouseX) * rotationSpeed * Time.deltaTime;
-        else
-            yRot = target.rotation.eulerAngles.y;
+        float x = Input.GetAxis(MouseX);
+        float y = Input.GetAxis(MouseY);
 
-        xRot -= Input.GetAxis(MouseY) * rotationSpeed * Time.deltaTime; // Negative so mouse up = cam down
+        if (camState == CameraState.Grounded)
+            yRot += x * rotationSpeed * Time.deltaTime;
+        else
+            yRot = Quaternion.LookRotation((lookAt.position - target.position).normalized, Vector3.up).eulerAngles.y;
+
+        xRot -= y * rotationSpeed * Time.deltaTime; // Negative so mouse up = cam down
         xRot = Mathf.Clamp(xRot, yMin, yMax);
 
         if (LAUTurning && camState == CameraState.Grounded 
-            && Mathf.Abs(Input.GetAxis(MouseX)) == 0f)
+            && Mathf.Abs(x) < 0.3f
+            && target.GetComponent<PlayerController>().Anim.GetCurrentAnimatorStateInfo(0).IsName("RunWalk"))
             DoExtraRotation();
 
         Quaternion targetRot = forceDirection != Vector3.zero ? 
@@ -82,7 +87,7 @@ public class CameraController : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (translationSmoothing != 0f)
+        if (translationSmoothing != 0f && camState == CameraState.Grounded)
             transform.position = Vector3.Lerp(transform.position, target.position, Time.deltaTime * translationSmoothing);
         else
             transform.position = target.position;
@@ -90,7 +95,7 @@ public class CameraController : MonoBehaviour
 
     private void DoExtraRotation()
     {
-        yRot += 2.0f * Input.GetAxis(target.GetComponent<PlayerInput>().horizontalAxis);
+        yRot += 1.6f * Input.GetAxis(target.GetComponent<PlayerInput>().horizontalAxis);
     }
 
     public void PivotOnHead()
@@ -118,6 +123,12 @@ public class CameraController : MonoBehaviour
     {
         get { return forceDirection; }
         set { forceDirection = value; }
+    }
+
+    public Transform LookAt
+    {
+        get { return lookAt; }
+        set { lookAt = value; }
     }
 }
 

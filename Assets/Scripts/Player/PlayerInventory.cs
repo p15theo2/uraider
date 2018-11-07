@@ -5,6 +5,8 @@ using UnityEngine;
 public class PlayerInventory : MonoBehaviour
 {
     public const int maxItems = 14;
+    [HideInInspector]
+    public int itemCount = 0;
 
     private bool activeGUI = false;
 
@@ -24,31 +26,33 @@ public class PlayerInventory : MonoBehaviour
         
     }
 
-    public void addItem(InventoryItem item)
+    public void AddItem(InventoryItem item)
     {
         for (int i = 0; i < items.Length; i++)
         {
             if (items[i] == null)
             {
-                Debug.Log("Item added");
                 items[i] = item;
+                itemCount++;
                 return;
             }
         }
     }
 
-    public void removeItem(InventoryItem item)
+    public void RemoveItem(InventoryItem item)
     {
         for (int i = 0; i < items.Length; i++)
         {
             if (items[i] == item)
             {
                 items[i] = null;
+                itemCount--;
+                return;
             }
         }
     }
 
-    public void removeItem(int i)
+    public void RemoveItem(int i)
     {
         items[i] = null;
     }

@@ -112,14 +112,8 @@ public class Locomotion : StateBase<PlayerController>
         float moveSpeed = Input.GetKey(player.playerInput.walk) ? player.walkSpeed
             : player.runSpeed;
 
-        Debug.Log("do ground: " + player.Anim.GetFloat("TargetSpeed") + " " + player.Anim.GetFloat("Speed"));
-        if (!(transInfo.IsName("Crouch_to_Idle -> RunWalk") || animState.IsName("Crouch_to_Idle") || animState.IsName("RunWalk")
-           || animState.IsName("Crawl_to_Crouch") || transInfo.IsName("Crawl_to_Crouch -> Crouch_to_Idle")))
-        {
-            Debug.Log("Warning");
-        }
         player.MoveGrounded(moveSpeed);
-        if (player.targetSpeed > 0.1f)
+        if (player.targetSpeed > 1f)
             player.RotateToVelocityGround();
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);

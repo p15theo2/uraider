@@ -5,6 +5,10 @@ using UnityEngine;
 public class Weapon : MonoBehaviour
 {
     public GameObject bullet;
+
+    public int ammo = 0;
+    public int clips = 0;
+    public int ammoPerClip = 0;
     public float bulletDistance = 100f;
 
     private GameObject flash;

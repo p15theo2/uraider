@@ -8,6 +8,12 @@ public abstract class InventoryItem : MonoBehaviour
     public bool destroyOnUse;
 
     public Sprite sprite;
+    public GameObject inventoryModel;
+
+    private void Start()
+    {
+        
+    }
 
     private void OnTriggerStay(Collider other)
     {
@@ -18,15 +24,12 @@ public abstract class InventoryItem : MonoBehaviour
                 PlayerInventory inventory =  other.gameObject.GetComponent<PlayerInventory>();
                 Animator anim = other.gameObject.GetComponent<Animator>();
 
-                inventory.addItem(this);
+                inventory.AddItem(this);
                 anim.SetTrigger("PickUp");
                 this.gameObject.SetActive(false);
             }
         }
     }
 
-    public virtual void Use(PlayerController player)
-    {
-
-    }
+    public abstract void Use(PlayerController player);
 }

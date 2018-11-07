@@ -11,6 +11,7 @@ public class Combat : StateBase<PlayerController>
     public override void OnEnter(PlayerController player)
     {
         player.EnableCharControl();
+        player.Anim.applyRootMotion = false;
         player.ForceWaistRotation = true;
         player.Anim.SetBool("isCombat", true);
         player.Stats.ShowCanvas();
@@ -25,6 +26,7 @@ public class Combat : StateBase<PlayerController>
     public override void OnExit(PlayerController player)
     {
         target = null;
+        player.Anim.applyRootMotion = false;
         player.camController.State = CameraState.Grounded;
         player.WaistTarget = null;
         player.ForceWaistRotation = false;
@@ -55,49 +57,33 @@ public class Combat : StateBase<PlayerController>
 
         player.Anim.SetFloat("Stairs", 0f, 0.1f, Time.deltaTime);
 
-        if (target == null)
-            CheckForTargets(player);
-
         float moveSpeed = Input.GetKey(player.playerInput.walk) ? player.walkSpeed
             : player.runSpeed;
 
-        float multiplier = Input.GetKey(player.playerInput.walk) ? 1.32f
-            : 3.36f;
+        player.WaistRotation = player.transform.rotation;
+        player.Anim.SetBool("isTargetting", true);
 
-        float right = Input.GetAxis(player.playerInput.horizontalAxis) * multiplier;
-        float forward = Input.GetAxis(player.playerInput.verticalAxis) * multiplier;
-        Vector3 direction = player.transform.forward * forward + player.transform.right * right;
-
-        player.Anim.SetFloat("Right", right, 0.1f, Time.deltaTime);
-        player.Anim.SetFloat("Speed", forward, 0.1f, Time.deltaTime);
-        player.Velocity = direction;
-
-        //player.MoveStrafeGround(moveSpeed);
-
-        /*if (Input.GetButtonDown("Jump"))
-        {
-            player.StateMachine.GoToState<Jumping>();
-            return;
-        }*/
+        player.MoveStrafeGround(moveSpeed);
+        if (player.targetSpeed > 1f)
+            player.RotateToVelocityGround2();
 
         if (target == null)
-        {
-            player.RotateToCamera();
-            //player.RotateToTarget(target.position);
-            //player.camController.ForceDirection = (target.position - player.transform.position).normalized;
-            //player.RotateToVelocityGround(5f);
-            player.WaistRotation = /*Quaternion.LookRotation(player.transform.forward, Vector3.up)*/player.transform.rotation;
-            //player.camController.State = CameraState.Combat;
-            player.Anim.SetBool("isTargetting", true);
-        }
+            CheckForTargets(player);
+
+        player.camController.State = target == null ? CameraState.Grounded : CameraState.Combat;
+        
+        /*if (player.CombatAngle <= 90f || player.CombatAngle > 135f)
+        {*/
+            
+       /* }
         else
         {
-            player.camController.ForceDirection = Vector3.zero;
-            player.WaistRotation = player.transform.rotation;
-            player.camController.State = CameraState.Grounded;
-            player.RotateToVelocityGround();
-            player.Anim.SetBool("isTargetting", false);
-        }
+            Vector3 forwardMod = new Vector3(player.Cam.forward.x, 0f, player.Cam.forward.z).normalized;
+
+            targetRot = Quaternion.LookRotation(
+                Quaternion.Euler(0f, 90f * Mathf.Sign(player.CombatAngle), 0f) * forwardMod,
+                Vector3.up);
+        }*/
 
         player.Anim.SetBool("isFiring", Input.GetKey(player.playerInput.fireWeapon));
     }
@@ -109,7 +95,7 @@ public class Combat : StateBase<PlayerController>
         {
             if (c.gameObject.CompareTag("Enemy"))
             {
-                target = c.gameObject.transform;
+                player.camController.LookAt = target = c.gameObject.transform;
                 break;
             }
             else
