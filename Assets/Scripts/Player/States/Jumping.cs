@@ -10,12 +10,6 @@ public class Jumping : StateBase<PlayerController>
     private bool hasJumped = false;
     private bool ledgesDetected = false;
     private bool isGrabbing = false;
-    private float timeTracker = 0.0f;
-    private float grabForwardOffset = 0.1f;
-    private float grabUpOffset = 2.1f; //1.78
-    private float hipForwardOffset = 0.2f;
-    private float hipUpOffset = 0.94f;
-    private float lastChance = 0f;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
@@ -44,13 +38,8 @@ public class Jumping : StateBase<PlayerController>
         AnimatorTransitionInfo transInfo = player.Anim.GetAnimatorTransitionInfo(0);
 
         player.Anim.SetFloat("YSpeed", player.Velocity.y);
-        float targetSpeed = UMath.GetHorizontalMag(player.TargetMovementVector(player.runSpeed));
+        float targetSpeed = UMath.GetHorizontalMag(player.RawTargetVector(player.runSpeed));
         player.Anim.SetFloat("TargetSpeed", targetSpeed);
-
-        if (Input.GetButtonDown("Sprint"))
-        {
-            player.Anim.SetBool("isDive", true);
-        }
 
         if (!player.autoLedgeTarget && Input.GetKey(player.playerInput.action))
         {

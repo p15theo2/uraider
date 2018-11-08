@@ -9,7 +9,6 @@ public class InAir : StateBase<PlayerController>
 
     public override void OnEnter(PlayerController player)
     {
-        
         player.Anim.applyRootMotion = false;
         haltUpdate = false;
         screamed = false;
@@ -29,8 +28,6 @@ public class InAir : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
-        Debug.Log("In Air");
-
         if (haltUpdate)
             return;
 

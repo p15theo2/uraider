@@ -31,7 +31,7 @@ public class Sliding : StateBase<PlayerController>
             player.StateMachine.GoToState<InAir>();
             return;
         }
-        else if (player.groundAngle < player.charControl.slopeLimit)
+        else if (player.GroundAngle < player.charControl.slopeLimit)
         {
             player.StateMachine.GoToState<Locomotion>();
             return;

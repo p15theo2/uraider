@@ -74,14 +74,14 @@ public class Locomotion : StateBase<PlayerController>
             }
             return;
         }
-        else if (!player.Grounded && player.groundDistance > player.charControl.stepOffset && !isRootMotion)
+        else if (!player.Grounded && player.GroundDistance > player.charControl.stepOffset && !isRootMotion)
         {
             player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
             player.StateMachine.GoToState<InAir>();
             return;
         }
 
-        if (isStairs = (player.groundDistance < 1f && player.GroundHit.collider.CompareTag("Stairs")))
+        if (isStairs = (player.GroundDistance < 1f && player.GroundHit.collider.CompareTag("Stairs")))
         {
             player.Anim.SetBool("isStairs", true);
             RaycastHit hit;
@@ -98,7 +98,7 @@ public class Locomotion : StateBase<PlayerController>
             player.Anim.SetFloat("Stairs", 0f, 0.1f, Time.deltaTime);
         }
 
-        if (player.groundAngle > player.charControl.slopeLimit && !isRootMotion)
+        if (player.GroundAngle > player.charControl.slopeLimit && !isRootMotion)
         {
             player.StateMachine.GoToState<Sliding>();
             return;
@@ -113,7 +113,7 @@ public class Locomotion : StateBase<PlayerController>
             : player.runSpeed;
 
         player.MoveGrounded(moveSpeed);
-        if (player.targetSpeed > 1f)
+        if (player.TargetSpeed > 1f)
             player.RotateToVelocityGround();
         HandleLedgeStepMotion(player);
         LookForStepLedges(player);

@@ -55,14 +55,12 @@ public class PlayerController : MonoBehaviour
     private bool holdRotation = false;
     private bool forceWaistRotation = false;
     private float combatAngle = 0f;
-    [HideInInspector]
-    public float groundDistance = 0f;
-    [HideInInspector]
-    public float groundAngle = 0f;
+    private float groundDistance = 0f;
+    private float groundAngle = 0f;
     [HideInInspector]
     public bool isMovingAuto = false;
-    public float targetAngle = 0f;
-    public float targetSpeed = 0f;
+    private float targetAngle = 0f;
+    private float targetSpeed = 0f;
 
     private StateMachine<PlayerController> stateMachine;
     [HideInInspector]
@@ -110,6 +108,7 @@ public class PlayerController : MonoBehaviour
         stateMachine.AddState(new Empty());
         stateMachine.AddState(new Locomotion());
         stateMachine.AddState(new Combat());
+        stateMachine.AddState(new CombatJumping());
         stateMachine.AddState(new Climbing());
         stateMachine.AddState(new Freeclimb());
         stateMachine.AddState(new Drainpipe());
@@ -161,43 +160,20 @@ public class PlayerController : MonoBehaviour
 
         Vector3 centerStart = transform.position + Vector3.up * 0.2f;
 
-        if ((Physics.Raycast(centerStart, Vector3.down, out groundHit, groundDistance)
+        if ((Physics.Raycast(centerStart, Vector3.down, out groundHit, GroundDistance)
             && !groundHit.collider.CompareTag("Water")))
         {
             groundDistance = transform.position.y - groundHit.point.y;
             groundAngle = UMath.GroundAngle(groundHit.normal);
         }
 
-        anim.SetFloat("groundDistance", groundDistance);
-        anim.SetFloat("groundAngle", groundAngle);
+        anim.SetFloat("groundDistance", GroundDistance);
+        anim.SetFloat("groundAngle", GroundAngle);
     }
-    
+
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         stateMachine.SendMessage(hit);
-    }
-
-    private void OnAnimatorIK(int layerIndex)
-    {
-        if (isFootIK /*&& UMath.GetHorizontalMag(velocity) < 0.1f*/)
-        {
-            float curWeight = 1f;
-            RaycastHit hit;
-            if (Physics.Raycast(leftFootIK.position, Vector3.down, out hit, 0.5f))
-            {
-                anim.SetIKPosition(AvatarIKGoal.LeftFoot, hit.point + Vector3.up * footYOffset);
-                anim.SetIKPositionWeight(AvatarIKGoal.LeftFoot, curWeight);
-                anim.SetIKRotation(AvatarIKGoal.LeftFoot, Quaternion.LookRotation(transform.forward, hit.normal));
-                anim.SetIKRotationWeight(AvatarIKGoal.LeftFoot, curWeight);
-            }
-            if (Physics.Raycast(rightFootIK.position, Vector3.down, out hit, 0.5f))
-            {
-                anim.SetIKPosition(AvatarIKGoal.RightFoot, hit.point + Vector3.up * footYOffset);
-                anim.SetIKPositionWeight(AvatarIKGoal.RightFoot, curWeight);
-                anim.SetIKRotation(AvatarIKGoal.RightFoot, Quaternion.LookRotation(transform.forward, hit.normal));
-                anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, curWeight);
-            }
-        }
     }
 
     public void DisableRagdoll()
@@ -225,11 +201,11 @@ public class PlayerController : MonoBehaviour
         if (forceWaistRotation)
         {
             waistBone.rotation = waistRotation;
-            
+
             // Correction for faulty bone
             // IF NEW MODEL CAUSES ISSUES MESS WITH THIS
             waistBone.rotation = Quaternion.Euler(
-                waistBone.eulerAngles.x - 90f, waistBone.eulerAngles.y, 
+                waistBone.eulerAngles.x - 90f, waistBone.eulerAngles.y,
                 waistBone.eulerAngles.z);
         }
     }
@@ -276,13 +252,7 @@ public class PlayerController : MonoBehaviour
             if (Mathf.Abs(distance) > 0.05f)
             {
                 isNotOk = true;
-                /*direction = (point - transform.position).normalized;
-                velocity.y = 0f;
-                velocity = Vector3.Lerp(velocity, direction * walkSpeed * tRate, 10f * Time.deltaTime);
-                distance = Vector3.Distance(transform.position, point);
-                anim.SetFloat("Speed", velocity.magnitude);*/
                 transform.position = Vector3.Lerp(transform.position, point, tRate * Time.deltaTime);
-                //anim.SetFloat("Speed", 0f, 0.4f, Time.deltaTime);
                 distance = Vector3.Distance(transform.position, point);
             }
             else
@@ -306,7 +276,6 @@ public class PlayerController : MonoBehaviour
 
         isMovingAuto = false;
         anim.SetBool("isWaiting", false);
-        //anim.SetFloat("Speed", 0f);
     }
 
     private void UpdateAnimator()
@@ -316,35 +285,6 @@ public class PlayerController : MonoBehaviour
             : animState.normalizedTime % (int)animState.normalizedTime;
 
         anim.SetFloat("AnimTime", animTime);  // Used for determining certain transitions
-    }
-
-    float turnValue = 0f;
-    float vertValue = 0f;
-    float speed = 0f;
-
-    public Vector3 TargetMovementVector(float speed, float smoothing = 6f)
-    {
-        Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
-        Vector3 camRight = cam.right;
-
-        float forwardTarget = Input.GetAxisRaw(playerInput.verticalAxis);
-        float rightTarget = Input.GetAxisRaw(playerInput.horizontalAxis);
-
-        turnValue = Mathf.Lerp(turnValue, rightTarget, Time.deltaTime * 6f);
-        vertValue = Mathf.Lerp(vertValue, forwardTarget, Time.deltaTime * 6f);
-        this.speed = Mathf.Lerp(this.speed, speed, Time.deltaTime * 4f);
-
-        if (this.speed < 0.1f)
-            this.speed = 0f;
-
-        Vector3 targetVector = camForward * vertValue
-            + camRight * turnValue;
-        if (targetVector.magnitude > 1f)
-            targetVector = targetVector.normalized;
-        targetVector.y = 0f;
-        targetVector *= this.speed;
-
-        return targetVector;
     }
 
     public Vector3 RawTargetVector(float speed = 1f)
@@ -366,7 +306,7 @@ public class PlayerController : MonoBehaviour
 
     public void MoveGrounded(float speed, bool pushDown = true, float smoothing = 10f)
     {
-        Vector3 targetVector = /*TargetMovementVector(speed)*/RawTargetVector(speed);
+        Vector3 targetVector = RawTargetVector(speed);
 
         if (targetVector.magnitude < 0.3f)
             targetVector = Vector3.zero;
@@ -380,26 +320,26 @@ public class PlayerController : MonoBehaviour
         targetAngle = Vector3.SignedAngle(transform.forward, targetVector.normalized, Vector3.up);
         targetSpeed = UMath.GetHorizontalMag(targetVector);
 
-        holdRotation = Mathf.Abs(targetAngle) > (animState.IsName("Idle") ? 80f : 170f) || turning;
-        
-        anim.SetFloat("SignedTargetAngle", targetAngle, turning ? 1000000f : 0, Time.deltaTime);
-        anim.SetFloat("TargetAngle", Mathf.Abs(targetAngle), turning ? 1000000f : 0, Time.deltaTime);
-        anim.SetFloat("TargetSpeed", targetSpeed);
+        holdRotation = Mathf.Abs(TargetAngle) > (animState.IsName("Idle") ? 80f : 170f) || turning;
+
+        anim.SetFloat("SignedTargetAngle", TargetAngle, turning ? 1000000f : 0, Time.deltaTime);
+        anim.SetFloat("TargetAngle", Mathf.Abs(TargetAngle), turning ? 1000000f : 0, Time.deltaTime);
+        anim.SetFloat("TargetSpeed", TargetSpeed);
 
         if (UMath.GetHorizontalMag(velocity) < 0.1f)
         {
-            if (!adjustingRot && targetVector.magnitude > 0.1f && Mathf.Abs(targetAngle) > 5f/*5*/)
+            if (!adjustingRot && targetVector.magnitude > 0.1f && Mathf.Abs(TargetAngle) > 5f/*5*/)
             {
                 adjustingRot = true;
-                velocity = Mathf.Abs(targetAngle) > 80f ? targetVector : transform.forward * 3f;
-                
+                velocity = Mathf.Abs(TargetAngle) > 80f ? targetVector : transform.forward * 3f;
+
             }
             else if (UMath.GetHorizontalMag(targetVector) < 0.3f)
             {
                 velocity = Vector3.zero;
             }
         }
-        else if (Mathf.Abs(targetAngle) > 36f /*20*/)
+        else if (Mathf.Abs(TargetAngle) > 36f)
         {
             adjustingRot = true;
         }
@@ -459,7 +399,7 @@ public class PlayerController : MonoBehaviour
             if (!adjustingRot && targetVector.magnitude > 0.1f && Mathf.Abs(targetAngle) > 5f/*5*/)
             {
                 adjustingRot = true;
-                velocity = Mathf.Abs(targetAngle) > 80f ? targetVector : transform.forward * 3f;
+                velocity = Mathf.Abs(TargetAngle) > 80f ? targetVector : transform.forward * 3f;
 
             }
             else if (UMath.GetHorizontalMag(targetVector) < 0.3f)
@@ -467,7 +407,7 @@ public class PlayerController : MonoBehaviour
                 velocity = Vector3.zero;
             }
         }
-        else if (Mathf.Abs(targetAngle) > 36f /*20*/)
+        else if (Mathf.Abs(TargetAngle) > 36f /*20*/)
         {
             adjustingRot = true;
         }
@@ -485,8 +425,8 @@ public class PlayerController : MonoBehaviour
             velocity = targetVector;
         }
 
-        anim.SetFloat("Speed", 
-            direction * 
+        anim.SetFloat("Speed",
+            direction *
             UMath.GetHorizontalMag(velocity));
         anim.SetFloat("Right", 0f);
 
@@ -565,7 +505,7 @@ public class PlayerController : MonoBehaviour
     int direction = 1;
     bool adjustRotCombat = false;
 
-    public void RotateToVelocityGround2(float smoothing = 8f)
+    public void RotateToVelocityStrafe(float smoothing = 8f)
     {
         // if stops Lara returning to the default rotation when idle
         if (UMath.GetHorizontalMag(velocity) > 0.3f && !holdRotation)
@@ -613,7 +553,7 @@ public class PlayerController : MonoBehaviour
             if (smoothing == 0f)
                 transform.rotation = Quaternion.LookRotation(velocity);
             else
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity),
                     smoothing * Time.deltaTime);
         }
     }
@@ -721,6 +661,26 @@ public class PlayerController : MonoBehaviour
     public float CombatAngle
     {
         get { return combatAngle; }
+    }
+
+    public float GroundDistance
+    {
+        get { return groundDistance; }
+    }
+
+    public float GroundAngle
+    {
+        get { return groundAngle;  }
+    }
+
+    public float TargetAngle
+    {
+        get { return targetAngle; }
+    }
+
+    public float TargetSpeed
+    {
+        get { return targetSpeed;  }
     }
 
     public Vector3 Velocity

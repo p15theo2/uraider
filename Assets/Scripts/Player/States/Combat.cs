@@ -28,62 +28,66 @@ public class Combat : StateBase<PlayerController>
         target = null;
         player.Anim.applyRootMotion = false;
         player.camController.State = CameraState.Grounded;
-        player.WaistTarget = null;
-        player.ForceWaistRotation = false;
-        player.Anim.SetBool("isCombat", false);
-        player.Stats.HideCanvas();
-        player.Anim.SetBool("isTargetting", false);
-        player.Anim.SetBool("isFiring", false);
-        player.pistolLHand.SetActive(false);
-        player.pistolRHand.SetActive(false);
-        player.pistolLLeg.SetActive(true);
-        player.pistolRLeg.SetActive(true);
     }
 
     public override void Update(PlayerController player)
     {
+        player.Anim.SetFloat("Stairs", 0f, 0.1f, Time.deltaTime);
+
         if (!Input.GetKey(player.playerInput.drawWeapon) && Input.GetAxisRaw("CombatTrigger") < 0.1f)
         {
+            player.Anim.SetBool("isCombat", false);
+            player.Anim.SetBool("isTargetting", false);
+            player.Anim.SetBool("isFiring", false);
+            player.Stats.HideCanvas();
+            player.pistolLHand.SetActive(false);
+            player.pistolRHand.SetActive(false);
+            player.pistolLLeg.SetActive(true);
+            player.pistolRLeg.SetActive(true);
+            player.ForceWaistRotation = false;
             player.StateMachine.GoToState<Locomotion>();
             return;
         }
 
-        if (player.groundDistance > 0.6f && !player.Grounded)
+        if (player.Grounded)
         {
-            player.Velocity = Vector3.Scale(player.Velocity, new Vector3(1f, 0f, 1f));
-            player.StateMachine.GoToState<InAir>();
-            return;
-        }
+            if (Input.GetKeyDown(player.playerInput.jump))
+            {
+                player.StateMachine.GoToState<CombatJumping>();
+                return;
+            }
 
-        player.Anim.SetFloat("Stairs", 0f, 0.1f, Time.deltaTime);
-
-        float moveSpeed = Input.GetKey(player.playerInput.walk) ? player.walkSpeed
+            float moveSpeed = Input.GetKey(player.playerInput.walk) ? player.walkSpeed
             : player.runSpeed;
 
-        player.WaistRotation = player.transform.rotation;
-        player.Anim.SetBool("isTargetting", true);
-
-        player.MoveStrafeGround(moveSpeed);
-        if (player.targetSpeed > 1f)
-            player.RotateToVelocityGround2();
+            player.MoveStrafeGround(moveSpeed);
+            if (player.TargetSpeed > 1f)
+                player.RotateToVelocityStrafe();
+        }
+        else
+        {
+            player.ApplyGravity(player.gravity);
+        }
 
         if (target == null)
             CheckForTargets(player);
 
-        player.camController.State = target == null ? CameraState.Grounded : CameraState.Combat;
-        
-        /*if (player.CombatAngle <= 90f || player.CombatAngle > 135f)
-        {*/
-            
-       /* }
+        if (target != null)
+        {
+            player.Anim.SetFloat("AimAngle", 
+                Vector3.SignedAngle((target.position - player.transform.position).normalized, 
+                player.transform.forward, Vector3.up));
+            Debug.Log("AimAngle " + player.Anim.GetFloat("AimAngle"));
+        }
         else
         {
-            Vector3 forwardMod = new Vector3(player.Cam.forward.x, 0f, player.Cam.forward.z).normalized;
+            player.Anim.SetFloat("AimAngle", player.CombatAngle);
+        }
 
-            targetRot = Quaternion.LookRotation(
-                Quaternion.Euler(0f, 90f * Mathf.Sign(player.CombatAngle), 0f) * forwardMod,
-                Vector3.up);
-        }*/
+        player.WaistRotation = player.transform.rotation;
+        player.Anim.SetBool("isTargetting", true);
+
+        player.camController.State = target == null ? CameraState.Grounded : CameraState.Combat;
 
         player.Anim.SetBool("isFiring", Input.GetKey(player.playerInput.fireWeapon));
     }

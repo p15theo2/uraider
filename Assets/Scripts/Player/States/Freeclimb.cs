@@ -109,7 +109,7 @@ class Freeclimb : StateBase<PlayerController>
             
         }
 
-        if (player.groundDistance <= 0.6f)
+        if (player.GroundDistance <= 0.6f)
             vertical = Mathf.Clamp01(vertical);
 
         if (Physics.Raycast(player.transform.position, -player.transform.right, 1f))
@@ -134,7 +134,7 @@ class Freeclimb : StateBase<PlayerController>
             player.transform.rotation = Quaternion.LookRotation(-hit.normal, Vector3.up);
         }
 
-        if (player.groundDistance <= 1f)
+        if (player.GroundDistance <= 1f)
         {
             /*if (!isGettingOff)
             {
