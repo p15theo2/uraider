@@ -151,10 +151,9 @@ public class Locomotion : StateBase<PlayerController>
 
     private void LookForStepLedges(PlayerController player)
     {
-        if (Input.GetButtonDown("Jump") && !isRootMotion && player.Anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
+        if (!isRootMotion && player.Anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
-            isRootMotion = ledgeDetector.FindPlatformInfront(player.transform.position,
-                player.transform.forward, 2f);
+            isRootMotion = ledgeDetector.FindPlatformInfront(player.transform.position,player.transform.forward, 2f);
 
             if (isRootMotion)
             {
@@ -171,7 +170,7 @@ public class Locomotion : StateBase<PlayerController>
                     player.transform.rotation = Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up);
                     player.DisableCharControl(); // stops char controller collisions
                 }
-
+                
                 if (height <= 0.9f)
                     player.Anim.SetTrigger("StepUpQtr");
                 else if (height <= 1.5f)

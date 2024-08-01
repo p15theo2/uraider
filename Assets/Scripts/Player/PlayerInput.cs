@@ -15,4 +15,6 @@ public class PlayerInput : MonoBehaviour
     public KeyCode pls = KeyCode.F;
     public KeyCode inventory = KeyCode.Tab;
     public KeyCode pause = KeyCode.Escape;
+    public KeyCode push = KeyCode.Z;
+    public KeyCode pull = KeyCode.X;
 }
