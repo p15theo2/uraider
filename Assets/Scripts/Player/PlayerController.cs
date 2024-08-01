@@ -81,6 +81,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public bool useRootMotion = true;
     private RaycastHit groundHit;
+    private GameObject pushObject;
 
     private void Awake()
     {
@@ -145,8 +146,56 @@ public class PlayerController : MonoBehaviour
 
         UpdateAnimator();
 
+        if (Input.GetKeyDown(playerInput.pull))
+        {
+            PullObject();
+        } else if (Input.GetKeyDown(playerInput.push)) {
+            PushObject();
+        }
+
+        IsPushPullFinished();
+
         if (charControl.enabled)
             charControl.Move((anim.applyRootMotion ? Vector3.Scale(velocity, Vector3.up) : velocity) * Time.deltaTime);
+    }
+
+    private void PushObject()
+    {
+        RaycastHit hitout;
+        if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f)){
+            if (hitout.collider.gameObject.CompareTag("Pushable"))
+            {
+                pushObject = hitout.collider.gameObject;
+                anim.SetTrigger("PushObject");
+                pushObject.transform.parent = transform;
+                anim.SetBool("isWaiting", true);
+            }
+        }
+    }
+
+    private void PullObject()
+    {
+        RaycastHit hitout;
+        if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f))
+        {
+            if (hitout.collider.gameObject.CompareTag("Pushable"))
+            {
+                pushObject = hitout.collider.gameObject;
+                anim.SetTrigger("PullObject");
+                pushObject.transform.parent = transform;
+                anim.SetBool("isWaiting", true);
+            }
+        }
+    }
+
+    private void IsPushPullFinished()
+    {
+        if((anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject")||anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject")) && pushObject != null && anim.GetCurrentAnimatorStateInfo(0).normalizedTime>0.95f)
+        {
+            anim.SetBool("isWaiting", false);
+            pushObject.transform.parent = null;
+            pushObject = null;
+        }
     }
 
     private void CheckForGround()
