@@ -27,7 +27,7 @@ public abstract class InventoryItem : MonoBehaviour
                 inventory =  other.gameObject.GetComponent<PlayerInventory>();
                 Animator anim = other.gameObject.GetComponent<Animator>();
                 anim.SetTrigger("PickUp");
-                Invoke("PickedItem", 3f);
+                Invoke("PickedItem", 1.7f);
             }
         }
     }
@@ -36,7 +36,7 @@ public abstract class InventoryItem : MonoBehaviour
     {
         inventory.AddItem(this);
         pickCam.SetAndEnable(gameObject);
-        Destroy(gameObject);
+        gameObject.SetActive(false);
     }
 
     public abstract void Use(PlayerController player);

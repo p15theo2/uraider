@@ -80,9 +80,13 @@ public class PlayerController : MonoBehaviour
     public Vector3 slopeDirection;
     [HideInInspector]
     public bool useRootMotion = true;
+    public bool locked;
     private RaycastHit groundHit;
     private GameObject pushObject;
-
+    private float pushPullState = 0;
+    private bool isBack = false;
+    private bool rotRock = false;
+    
     private void Awake()
     {
         DisableRagdoll();
@@ -127,6 +131,19 @@ public class PlayerController : MonoBehaviour
         stateMachine.GoToState<Locomotion>();
     }
 
+    public void Lock(float sec)
+    {
+        rotRock = true;
+        anim.SetBool("isClimb", true);
+        Invoke("Unlock", sec);
+    }
+
+    private void Unlock()
+    {
+        anim.SetBool("isClimb", false);
+        rotRock = false;
+    }
+
     private void Update()
     {
         if (RingMenu.isPaused)
@@ -138,65 +155,113 @@ public class PlayerController : MonoBehaviour
         {
             anim.speed = 1f;
         }
-
-
-        CheckForGround();
-
-        stateMachine.Update();
-
-        UpdateAnimator();
-
-        if (Input.GetKeyDown(playerInput.pull))
+        
+        if (!locked)  // Lock when pull and push
         {
-            PullObject();
-        } else if (Input.GetKeyDown(playerInput.push)) {
-            PushObject();
+            UpdateAnimator();
+            CheckForGround();
+            stateMachine.Update();
+        }
+        Debug.Log(pushPullState);
+
+        if (Input.GetKeyUp(playerInput.action))
+        {
+            if (!locked && anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
+            {
+                RaycastHit hitout;
+                if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f))
+                {
+                    if (hitout.collider.gameObject.CompareTag("Pushable"))
+                    {
+                        pushObject = hitout.collider.gameObject;
+                        locked = true;
+                    }
+                }
+            }
+            else if(pushPullState == 0 && pushObject != null)
+            {
+                locked = false;
+                pushObject.transform.parent = null;
+            }
         }
 
-        IsPushPullFinished();
+        if (locked)
+        {
+            if (Input.GetKeyDown(KeyCode.W))
+            {
+                anim.SetTrigger("PushReady");
+                pushObject.transform.parent = transform;
+            }
+            else if (Input.GetKeyDown(KeyCode.S))
+            {
+                anim.SetTrigger("PullReady");
+                pushObject.transform.parent = transform;
+            }
+            else if (Input.GetKeyUp(KeyCode.W))
+            {
+                anim.SetTrigger("PushExit");
+                pushObject.transform.parent = transform;
+            }
+            else if (Input.GetKeyUp(KeyCode.S))
+            {
+                anim.SetTrigger("PullExit");
+                pushObject.transform.parent = transform;
+            }
+        }
 
         if (charControl.enabled)
             charControl.Move((anim.applyRootMotion ? Vector3.Scale(velocity, Vector3.up) : velocity) * Time.deltaTime);
+
     }
 
     private void PushObject()
     {
-        RaycastHit hitout;
-        if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f)){
-            if (hitout.collider.gameObject.CompareTag("Pushable"))
-            {
-                pushObject = hitout.collider.gameObject;
-                anim.SetTrigger("PushObject");
-                pushObject.transform.parent = transform;
-                anim.SetBool("isWaiting", true);
-            }
-        }
+        pushPullState = 2;
+        anim.SetTrigger("PushObject");
     }
 
     private void PullObject()
     {
-        RaycastHit hitout;
-        if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f))
+        pushPullState = 2;
+        anim.SetTrigger("PullObject");
+    }
+
+    private void PushPullStop()
+    {
+        if (anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
         {
+            anim.SetTrigger("PushExit");
+        }
+        else if (anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
+            anim.SetTrigger("PullExit");
+    }
+
+    private void PushPullReadyExit()
+    {
+        if (pushPullState == 1)
+        {
+            locked = false;
+            pushPullState = 0;
+            pushObject.transform.parent = null;
+            pushObject = null;
+            anim.SetTrigger("PushPullExit");
+            anim.SetBool("isWaiting", false);
+            return;
+        }
+        RaycastHit hitout;
+        if (pushPullState == 0 && Physics.Raycast(transform.position, transform.forward, out hitout, 0.3f)){
             if (hitout.collider.gameObject.CompareTag("Pushable"))
             {
+                locked = true;
                 pushObject = hitout.collider.gameObject;
-                anim.SetTrigger("PullObject");
+                anim.SetTrigger("PushPullReady");
                 pushObject.transform.parent = transform;
                 anim.SetBool("isWaiting", true);
+                pushPullState = 1;
             }
         }
     }
 
-    private void IsPushPullFinished()
-    {
-        if((anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject")||anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject")) && pushObject != null && anim.GetCurrentAnimatorStateInfo(0).normalizedTime>0.95f)
-        {
-            anim.SetBool("isWaiting", false);
-            pushObject.transform.parent = null;
-            pushObject = null;
-        }
-    }
 
     private void CheckForGround()
     {
@@ -343,6 +408,7 @@ public class PlayerController : MonoBehaviour
 
         Vector3 targetVector = camForward * Input.GetAxisRaw(playerInput.verticalAxis)
             + camRight * Input.GetAxisRaw(playerInput.horizontalAxis);
+        if (rotRock) targetVector = transform.forward;
         if (targetVector.magnitude > 1f)
             targetVector.Normalize();
         targetVector.y = 0f;
@@ -373,7 +439,7 @@ public class PlayerController : MonoBehaviour
 
         anim.SetFloat("SignedTargetAngle", TargetAngle, turning ? 1000000f : 0, Time.deltaTime);
         anim.SetFloat("TargetAngle", Mathf.Abs(TargetAngle), turning ? 1000000f : 0, Time.deltaTime);
-        anim.SetFloat("TargetSpeed", TargetSpeed);
+        if(!locked) anim.SetFloat("TargetSpeed", TargetSpeed);
 
         if (UMath.GetHorizontalMag(velocity) < 0.1f)
         {

@@ -10,6 +10,7 @@ public class Locomotion : StateBase<PlayerController>
     private bool isTransitioning = false;
     private bool isStairs = false;
     private bool isJumping = false;
+    private bool moveable = true;
 
     private LedgeDetector ledgeDetector = LedgeDetector.Instance;
 
@@ -39,6 +40,9 @@ public class Locomotion : StateBase<PlayerController>
         AnimatorTransitionInfo transInfo = player.Anim.GetAnimatorTransitionInfo(0);
 
         player.IsFootIK = UMath.GetHorizontalMag(player.Velocity) < 0.1f;
+
+        HandleLedgeStepMotion(player);
+        LookForStepLedges(player);
 
         if (player.isMovingAuto)
             return;
@@ -112,11 +116,11 @@ public class Locomotion : StateBase<PlayerController>
         float moveSpeed = Input.GetKey(player.playerInput.walk) ? player.walkSpeed
             : player.runSpeed;
 
-        player.MoveGrounded(moveSpeed);
+        if(!isRootMotion || !Physics.Raycast(player.transform.position, player.transform.forward,1f))
+            player.MoveGrounded(moveSpeed);
         if (player.TargetSpeed > 1f)
             player.RotateToVelocityGround();
-        HandleLedgeStepMotion(player);
-        LookForStepLedges(player);
+        
 
         if (Input.GetKeyDown(player.playerInput.crouch))
         {
@@ -149,7 +153,7 @@ public class Locomotion : StateBase<PlayerController>
             isJumping = true;
     }
 
-    private void LookForStepLedges(PlayerController player)
+    private bool LookForStepLedges(PlayerController player)
     {
         if (!isRootMotion && player.Anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
@@ -157,30 +161,37 @@ public class Locomotion : StateBase<PlayerController>
 
             if (isRootMotion)
             {
+                
                 float height = ledgeDetector.GrabPoint.y - player.transform.position.y;
 
                 // step can be runned over
                 if (height < player.charControl.stepOffset)
                 {
                     isRootMotion = false;
-                    return;
+                    return false;
                 } 
                 else
                 {
                     player.transform.rotation = Quaternion.LookRotation(ledgeDetector.Direction, Vector3.up);
                     player.DisableCharControl(); // stops char controller collisions
                 }
-                
+                player.Lock(2f);
                 if (height <= 0.9f)
                     player.Anim.SetTrigger("StepUpQtr");
                 else if (height <= 1.5f)
                     player.Anim.SetTrigger("StepUpHlf");
                 else
                     player.Anim.SetTrigger("StepUpFull");
-
                 waitingBool = true;
+                return true;
             }
         }
+        return false;
+    }
+   
+    private void UnlockPlayer(PlayerController player)
+    {
+        player.locked = false;
     }
 
     private void HandleLedgeStepMotion(PlayerController player)
@@ -190,6 +201,7 @@ public class Locomotion : StateBase<PlayerController>
         {
             player.EnableCharControl();
             isRootMotion = false;
+            moveable = true;
         }
         else if (waitingBool && (animState.IsName("StepUp_Hlf") || animState.IsName("StepUp_Qtr")
             || animState.IsName("StepUp_Full") || animState.IsName("RunStepUp_Qtr") || animState.IsName("RunStepUp_QtrM")))
