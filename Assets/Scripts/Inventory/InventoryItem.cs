@@ -24,6 +24,7 @@ public abstract class InventoryItem : MonoBehaviour
         {
             if (Input.GetButtonDown("Action"))
             {
+                gameObject.GetComponent<Collider>().enabled = false;
                 inventory =  other.gameObject.GetComponent<PlayerInventory>();
                 Animator anim = other.gameObject.GetComponent<Animator>();
                 anim.SetTrigger("PickUp");

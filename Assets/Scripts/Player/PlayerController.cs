@@ -1,8 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Networking;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerStats))]
@@ -169,54 +166,42 @@ public class PlayerController : MonoBehaviour
         {
             if (anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             {
-                RaycastHit hitout;
-                if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f))
-                {
-                    if (hitout.collider.gameObject.CompareTag("Pushable"))
-                    {
-                        pushObject = hitout.collider.gameObject;
-                        if ((Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)))
-                            anim.SetTrigger("PushReady");
-                        else if ((Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)))
-                            anim.SetTrigger("PullReady");
-                        pushObject.transform.parent = transform;
-                    }
-                }
+                if ((Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)))
+                    anim.SetTrigger("PushReady");
+                else if ((Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)))
+                    anim.SetTrigger("PullReady");
+                pushObject.transform.parent = transform;
             }
             else
             {
-                if (Input.GetKeyUp(playerInput.action))
-                {
-                    if (anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
-                    {
-                        anim.SetTrigger("PushExit");
-                    }
-                    else if (anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
-                    {
-                        anim.SetTrigger("PullExit");
-                    }
-                    pushObject.transform.parent = null;
-                }
                 if ((Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.UpArrow)) && anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
                 {
                     anim.SetTrigger("PushExit");
+                    pushObject.transform.parent = null;
+                    pushObject = null;
+                    locked = false;
                 }
                 if ((Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow)) && anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
                 {
                     anim.SetTrigger("PullExit");
+                    pushObject.transform.parent = null;
+                    pushObject = null;
+                    locked = false;
                 }
             }
         }
 
-        if (Input.GetKeyUp(playerInput.action))
+        else if (Input.GetKeyDown(playerInput.action) && anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
-            locked = false;
-            pushObject.transform.parent = null;
-        }
-
-        else if (Input.GetKeyDown(playerInput.action))
-        {
-            locked = true;
+            RaycastHit hitout;
+            if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f))
+            {
+                if (hitout.collider.gameObject.CompareTag("Pushable"))
+                {
+                    pushObject = hitout.collider.gameObject;
+                    locked = true;
+                }
+            }
         }
 
         if (charControl.enabled)
