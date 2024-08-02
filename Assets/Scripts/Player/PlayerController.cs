@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -164,9 +165,9 @@ public class PlayerController : MonoBehaviour
         }
         Debug.Log(pushPullState);
 
-        if (Input.GetKeyUp(playerInput.action))
+        if (locked)
         {
-            if (!locked && anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
+            if (anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             {
                 RaycastHit hitout;
                 if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f))
@@ -174,95 +175,54 @@ public class PlayerController : MonoBehaviour
                     if (hitout.collider.gameObject.CompareTag("Pushable"))
                     {
                         pushObject = hitout.collider.gameObject;
-                        locked = true;
+                        if ((Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)))
+                            anim.SetTrigger("PushReady");
+                        else if ((Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)))
+                            anim.SetTrigger("PullReady");
+                        pushObject.transform.parent = transform;
                     }
                 }
             }
-            else if(pushPullState == 0 && pushObject != null)
+            else
             {
-                locked = false;
-                pushObject.transform.parent = null;
+                if (Input.GetKeyUp(playerInput.action))
+                {
+                    if (anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
+                    {
+                        anim.SetTrigger("PushExit");
+                    }
+                    else if (anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
+                    {
+                        anim.SetTrigger("PullExit");
+                    }
+                    pushObject.transform.parent = null;
+                }
+                if ((Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.UpArrow)) && anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
+                {
+                    anim.SetTrigger("PushExit");
+                }
+                if ((Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow)) && anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
+                {
+                    anim.SetTrigger("PullExit");
+                }
             }
         }
 
-        if (locked)
+        if (Input.GetKeyUp(playerInput.action))
         {
-            if (Input.GetKeyDown(KeyCode.W))
-            {
-                anim.SetTrigger("PushReady");
-                pushObject.transform.parent = transform;
-            }
-            else if (Input.GetKeyDown(KeyCode.S))
-            {
-                anim.SetTrigger("PullReady");
-                pushObject.transform.parent = transform;
-            }
-            else if (Input.GetKeyUp(KeyCode.W))
-            {
-                anim.SetTrigger("PushExit");
-                pushObject.transform.parent = transform;
-            }
-            else if (Input.GetKeyUp(KeyCode.S))
-            {
-                anim.SetTrigger("PullExit");
-                pushObject.transform.parent = transform;
-            }
+            locked = false;
+            pushObject.transform.parent = null;
+        }
+
+        else if (Input.GetKeyDown(playerInput.action))
+        {
+            locked = true;
         }
 
         if (charControl.enabled)
             charControl.Move((anim.applyRootMotion ? Vector3.Scale(velocity, Vector3.up) : velocity) * Time.deltaTime);
 
     }
-
-    private void PushObject()
-    {
-        pushPullState = 2;
-        anim.SetTrigger("PushObject");
-    }
-
-    private void PullObject()
-    {
-        pushPullState = 2;
-        anim.SetTrigger("PullObject");
-    }
-
-    private void PushPullStop()
-    {
-        if (anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
-        {
-            anim.SetTrigger("PushExit");
-        }
-        else if (anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
-            anim.SetTrigger("PullExit");
-    }
-
-    private void PushPullReadyExit()
-    {
-        if (pushPullState == 1)
-        {
-            locked = false;
-            pushPullState = 0;
-            pushObject.transform.parent = null;
-            pushObject = null;
-            anim.SetTrigger("PushPullExit");
-            anim.SetBool("isWaiting", false);
-            return;
-        }
-        RaycastHit hitout;
-        if (pushPullState == 0 && Physics.Raycast(transform.position, transform.forward, out hitout, 0.3f)){
-            if (hitout.collider.gameObject.CompareTag("Pushable"))
-            {
-                locked = true;
-                pushObject = hitout.collider.gameObject;
-                anim.SetTrigger("PushPullReady");
-                pushObject.transform.parent = transform;
-                anim.SetBool("isWaiting", true);
-                pushPullState = 1;
-            }
-        }
-    }
-
-
     private void CheckForGround()
     {
         // velY condition helps stop accidental grounding (like when jumping)
