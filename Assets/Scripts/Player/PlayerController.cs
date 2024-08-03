@@ -17,6 +17,10 @@ public class PlayerController : MonoBehaviour
     public float swimSpeed = 2f;
     public float treadSpeed = 1.2f;
     public float slideSpeed = 2f;
+    [Header("DamageRates")]
+    public float breathLossRate = 2;
+    public float breathRecoveryRate = 2;
+    public float underwaterDeathSp = 18;
     [Header("Physics")]
     public float gravity = 9.81f;
     public float deathVelocity = 12f;
@@ -84,6 +88,7 @@ public class PlayerController : MonoBehaviour
     private float pushPullState = 0;
     private bool isBack = false;
     private bool rotRock = false;
+    private bool animationTriggered = false;
     
     private void Awake()
     {
@@ -160,33 +165,39 @@ public class PlayerController : MonoBehaviour
             CheckForGround();
             stateMachine.Update();
         }
-        Debug.Log(pushPullState);
 
         if (locked)
         {
             if (anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             {
-                if ((Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)))
+                if (Input.GetAxis(playerInput.verticalAxis) > 0.7f && !animationTriggered)
+                {
                     anim.SetTrigger("PushReady");
-                else if ((Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)))
+                    animationTriggered = true;
+                }
+                else if (Input.GetAxis(playerInput.verticalAxis) < -0.7f && !animationTriggered)
+                {
                     anim.SetTrigger("PullReady");
-                pushObject.transform.parent = transform;
+                    animationTriggered = true;
+                }
             }
             else
             {
-                if ((Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.UpArrow)) && anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
+                if (Input.GetAxis(playerInput.verticalAxis) < 0.7f && anim.GetCurrentAnimatorStateInfo(0).IsName("PushObject"))
                 {
                     anim.SetTrigger("PushExit");
                     pushObject.transform.parent = null;
                     pushObject = null;
                     locked = false;
+                    animationTriggered = false;
                 }
-                if ((Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow)) && anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
+                if (Input.GetAxis(playerInput.verticalAxis) > -0.7f && anim.GetCurrentAnimatorStateInfo(0).IsName("PullObject"))
                 {
                     anim.SetTrigger("PullExit");
                     pushObject.transform.parent = null;
                     pushObject = null;
                     locked = false;
+                    animationTriggered = false;
                 }
             }
         }
@@ -199,6 +210,7 @@ public class PlayerController : MonoBehaviour
                 if (hitout.collider.gameObject.CompareTag("Pushable"))
                 {
                     pushObject = hitout.collider.gameObject;
+                    pushObject.transform.parent = transform;
                     locked = true;
                 }
             }

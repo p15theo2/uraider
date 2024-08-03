@@ -1,23 +1,22 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class RingMenu : MonoBehaviour
 {
     public static bool isPaused = false;
-    public float rotationRate = 10f;
 
     public GameObject menu;
-    public Transform rotater;
+    public Transform[] rotaters;
     public PlayerInventory inventory;
+
+    public int curIndex = 1;
 
     private float angleChange = 90f;
 
-    private Quaternion targetRotation;
     private PlayerInput input;
 
     private void Start()
-    {
+    {   
         input = GetComponent<PlayerInput>();
         Cursor.visible = false;
         menu.SetActive(false);
@@ -30,29 +29,50 @@ public class RingMenu : MonoBehaviour
             isPaused = !isPaused;
 
             if (isPaused)
+            {
                 EnableMenu();
+                Input.ResetInputAxes();
+            }
             else
+            {
                 DisableMenu();
+                curIndex = 1;
+            }
         }
-
-        if (!isPaused)
-            return;
-        
-        if (rotater.rotation.eulerAngles.y == targetRotation.eulerAngles.y)
+        if(!isPaused) return;
+        float hAxis = Input.GetAxisRaw(input.horizontalAxis);
+        float vAxis = Input.GetAxisRaw(input.verticalAxis);
+        if (!rotaters[curIndex].GetComponent<Ring>().moving)
         {
-            if (Mathf.Abs(Input.GetAxisRaw(input.horizontalAxis)) > 0.3f)
-                RotateTo(Mathf.Sign(Input.GetAxisRaw(input.horizontalAxis)) * angleChange * Mathf.Rad2Deg);
+            if (Mathf.Abs(hAxis) > 0.3f)
+            {
+                rotaters[curIndex].GetComponent<Ring>().RotateOneStep(Sign(hAxis));
+                Input.ResetInputAxes();
+                return;
+            }
+            if (Mathf.Abs(vAxis) > 0.3f)
+            {
+                Input.ResetInputAxes();
+                if (vAxis < 0f && curIndex == 0) return ;
+                if(vAxis > 0f && curIndex == 2) return ;
+                int direction = Sign(vAxis);
+                curIndex += direction;
+                int type = 0;
+                for(int i = 0; i < rotaters.Length; i++)
+                {
+                    if (i == curIndex - direction) type = 1;
+                    else if (i == curIndex) type = 2;
+                    rotaters[i].GetComponent<Ring>().Move(direction, type);
+                }
+            }
         }
-
-        if (Mathf.Abs(targetRotation.eulerAngles.y - rotater.eulerAngles.y) > 4f)
-            rotater.rotation = Quaternion.Lerp(rotater.rotation, targetRotation, rotationRate * Time.deltaTime);
-        else
-            rotater.rotation = targetRotation;
     }
 
-    private void RotateTo(float delta)
+    private int Sign(float val)
     {
-        targetRotation = Quaternion.Euler(0f, rotater.rotation.eulerAngles.y + delta, 0f);
+        if (val > 0) return 1;
+        else if(val < 0) return -1;
+        return 0;
     }
 
     private void EnableMenu()
@@ -68,34 +88,33 @@ public class RingMenu : MonoBehaviour
 
     private void RefreshMenu()
     {
-        foreach (Transform child in rotater)
+        for (int index = 0; index < 3; index++)
         {
-            Destroy(child.gameObject);
-        }
-
-        angleChange = (2f * Mathf.PI) / inventory.itemCount;
-
-        Debug.Log(inventory.itemCount + " " + angleChange);
-
-        for (int i = 0; i < inventory.Items.Length; i++)
-        {
-            if (inventory.Items[i] == null)
-                continue;
-
-            GameObject item = Instantiate(inventory.Items[i].inventoryModel, rotater);
-
-            float angle = angleChange * (i + 1);
-            float x = 2f * Mathf.Sin(angle);  // Convert polar co-ords to cartesian
-            float z = -2f * Mathf.Cos(angle);
-
-            item.transform.localPosition = new Vector3(x, 0f, z);
-            foreach (Transform child in item.transform)
+            foreach (Transform child in rotaters[index])
             {
-                child.gameObject.layer = rotater.gameObject.layer;
+                Destroy(child.gameObject);
             }
-            item.layer = rotater.gameObject.layer;
-        }
 
-        
+            angleChange = (2f * Mathf.PI) / inventory.itemCount[index];
+
+            for (int i = 0; i < 14; i++)
+            {
+                if (inventory.Items[i, index] == null)
+                    continue;
+
+                GameObject item = Instantiate(inventory.Items[i, index].inventoryModel, rotaters[index]);
+
+                float angle = angleChange * (i + 1);
+                float x = (index == 1 ? 2f : 0f) * Mathf.Sin(angle);  // Convert polar co-ords to cartesian
+                float z = (index == 1 ? -2f : 0f) * Mathf.Cos(angle);
+
+                item.transform.localPosition = new Vector3(x, 0f, z);
+                foreach (Transform child in item.transform)
+                {
+                    child.gameObject.layer = rotaters[index].gameObject.layer;
+                }
+                item.layer = rotaters[index].gameObject.layer;
+            }
+        }
     }
 }

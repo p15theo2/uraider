@@ -10,6 +10,8 @@ public abstract class InventoryItem : MonoBehaviour
     public Sprite sprite;
     public GameObject inventoryModel;
 
+    public int type = 0;   // 0 - keyItem, 1 - Health/weapon, 2 - menu
+
     private PlayerInventory inventory;
     private PickUICam pickCam;
 
@@ -20,6 +22,7 @@ public abstract class InventoryItem : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (type == 2) return;
         if (other.transform.CompareTag("Player"))
         {
             if (Input.GetButtonDown("Action"))

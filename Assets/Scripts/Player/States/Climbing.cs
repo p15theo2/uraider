@@ -85,7 +85,7 @@ public class Climbing : StateBase<PlayerController>
 
         player.Anim.SetFloat("Right", right);
 
-        if (Input.GetKey(player.playerInput.jump) && !isOutCornering && !isClimbingUp && right < 0.3f
+        if (Input.GetAxis(player.playerInput.verticalAxis)>0.5f && !isOutCornering && !isClimbingUp && right < 0.3f
             && ledgeDetector.CanClimbUp(player.transform.position, player.transform.forward))
             ClimbUp(player);
 
