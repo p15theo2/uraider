@@ -84,6 +84,8 @@ public class RingMenu : MonoBehaviour
 
     private void DisableMenu()
     {
+        if (rotaters[curIndex].GetComponent<Ring>().moving)
+            return;
         menu.SetActive(false);
     }
 
@@ -106,12 +108,12 @@ public class RingMenu : MonoBehaviour
                     continue;
                 GameObject item = Instantiate(inventory.Items[i, index].inventoryModel, rotaters[index]);
 
-                float angle = angleChange * (curIndex + 1);
+                float angle = angleChange * curIndex;
                 float x = (index == 1 ? 2f : 0f) * Mathf.Sin(angle);  // Convert polar co-ords to cartesian
-                float z = (index == 1 ? -2f : 0f) * Mathf.Cos(angle);
+                float z = (index == 1 ? 2f : 0f) * Mathf.Cos(angle);
 
                 item.transform.localPosition = new Vector3(x, 0f, z);
-                item.transform.eulerAngles = new Vector3 (0f, -curIndex * 360f / inventory.itemCount[index], 0f);
+                item.transform.eulerAngles = new Vector3 (0f, 180f + curIndex * 360f / inventory.itemCount[index], 0f);
                 foreach (Transform child in item.transform)
                 {
                     child.gameObject.layer = rotaters[index].gameObject.layer;

@@ -17,10 +17,9 @@ public class PlayerController : MonoBehaviour
     public float swimSpeed = 2f;
     public float treadSpeed = 1.2f;
     public float slideSpeed = 2f;
-    [Header("DamageRates")]
-    public float breathLossRate = 2;
-    public float breathRecoveryRate = 2;
-    public float underwaterDeathSp = 18;
+    [Header("UnderwaterDamageTimes")]
+    public float breathTime = 60;
+    public float damageTime = 10;
     [Header("Physics")]
     public float gravity = 9.81f;
     public float deathVelocity = 12f;
@@ -63,6 +62,7 @@ public class PlayerController : MonoBehaviour
     public bool isMovingAuto = false;
     private float targetAngle = 0f;
     private float targetSpeed = 0f;
+    private float curBreathTime = 60f;
 
     private StateMachine<PlayerController> stateMachine;
     [HideInInspector]
@@ -109,6 +109,7 @@ public class PlayerController : MonoBehaviour
         velocity = Vector3.zero;
         stateMachine = new StateMachine<PlayerController>(this);
         SetUpStateMachine();
+        curBreathTime = breathTime;
     }
 
     private void SetUpStateMachine()

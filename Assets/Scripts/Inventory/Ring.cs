@@ -33,7 +33,7 @@ public class Ring : MonoBehaviour {
             }
             for (int i = 0; i < childCount; i++)
             {
-                transform.GetChild(i).localPosition = new Vector3(-radius * Mathf.Sin(2 * i * Mathf.PI / childCount), 0f, radius * Mathf.Cos(2 * i * Mathf.PI / childCount));
+                transform.GetChild(i).localPosition = new Vector3(radius * Mathf.Sin(2 * i * Mathf.PI / childCount), 0f, radius * Mathf.Cos(2 * i * Mathf.PI / childCount));
             }
         }
         else
@@ -43,7 +43,7 @@ public class Ring : MonoBehaviour {
         }
         if(Mathf.Abs(3.6f * rotDirection) > Mathf.Abs(tarRot - curRot))
         {
-            transform.Rotate(0f, - Mathf.Abs(tarRot-curRot) * rotDirection, 0f);
+            transform.Rotate(0f, tarRot-curRot, 0f);
             curRot = tarRot;
             rotDirection = 0;
             if(direction == 0) moving = false;
