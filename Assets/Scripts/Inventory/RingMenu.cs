@@ -96,24 +96,25 @@ public class RingMenu : MonoBehaviour
             }
 
             angleChange = (2f * Mathf.PI) / inventory.itemCount[index];
-
+            int curIndex = 0;
             for (int i = 0; i < 14; i++)
             {
                 if (inventory.Items[i, index] == null)
                     continue;
-
                 GameObject item = Instantiate(inventory.Items[i, index].inventoryModel, rotaters[index]);
 
-                float angle = angleChange * (i + 1);
+                float angle = angleChange * (curIndex + 1);
                 float x = (index == 1 ? 2f : 0f) * Mathf.Sin(angle);  // Convert polar co-ords to cartesian
                 float z = (index == 1 ? -2f : 0f) * Mathf.Cos(angle);
 
                 item.transform.localPosition = new Vector3(x, 0f, z);
+                item.transform.eulerAngles = new Vector3 (0f, -curIndex * 360f / inventory.itemCount[index], 0f);
                 foreach (Transform child in item.transform)
                 {
                     child.gameObject.layer = rotaters[index].gameObject.layer;
                 }
                 item.layer = rotaters[index].gameObject.layer;
+                curIndex++;
             }
         }
     }

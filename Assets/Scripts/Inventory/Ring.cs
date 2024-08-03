@@ -22,7 +22,7 @@ public class Ring : MonoBehaviour {
             curPos += Mathf.Min(Mathf.Abs(7f * Time.deltaTime), Mathf.Abs(tarPos - curPos)) * Mathf.Sign(tarPos - curPos);
             transform.Rotate(0f, 180f * Time.deltaTime, 0f);
             curRot += 180f * Time.deltaTime;
-            curRot %= 360f;
+            curRot %= 360;
             rotDirection = 1;
             float radius = 0;
             switch (type)
@@ -33,7 +33,7 @@ public class Ring : MonoBehaviour {
             }
             for (int i = 0; i < childCount; i++)
             {
-                transform.GetChild(i).localPosition = new Vector3(radius * Mathf.Sin(2 * i * Mathf.PI / childCount), 0f, -radius * Mathf.Cos(2 * i * Mathf.PI / childCount));
+                transform.GetChild(i).localPosition = new Vector3(-radius * Mathf.Sin(2 * i * Mathf.PI / childCount), 0f, radius * Mathf.Cos(2 * i * Mathf.PI / childCount));
             }
         }
         else
@@ -41,18 +41,17 @@ public class Ring : MonoBehaviour {
             direction = 0;
             if(rotDirection == 0) moving = false;
         }
-        if (Mathf.Abs(curRot - tarRot) > 10f)
+        if(Mathf.Abs(3.6f * rotDirection) > Mathf.Abs(tarRot - curRot))
         {
-            float rotDeg = Mathf.Min(Mathf.Abs(180f * Time.deltaTime * rotDirection), Mathf.Abs(tarRot - curRot));
-            transform.Rotate(0f, rotDeg * rotDirection, 0f);
-            curRot += 180f * Time.deltaTime * rotDirection;
-            curRot %= 360;
-        }
-        else
-        {
+            transform.Rotate(0f, - Mathf.Abs(tarRot-curRot) * rotDirection, 0f);
+            curRot = tarRot;
             rotDirection = 0;
             if(direction == 0) moving = false;
+            return;
         }
+        transform.Rotate(0f, -3.6f * rotDirection, 0f);
+        curRot -= 3.6f * rotDirection;
+        curRot %= 360;
     }
 
     public void Move(int pDirection, int pType)
