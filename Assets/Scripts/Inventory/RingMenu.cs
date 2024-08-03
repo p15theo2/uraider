@@ -10,7 +10,8 @@ public class RingMenu : MonoBehaviour
     public PlayerInventory inventory;
 
     public int curIndex = 1;
-
+    public Transform[] subRingTransforms;
+    
     private float angleChange = 90f;
 
     private PlayerInput input;
@@ -90,6 +91,8 @@ public class RingMenu : MonoBehaviour
     {
         for (int index = 0; index < 3; index++)
         {
+            rotaters[index].transform.position = subRingTransforms[index].transform.position;
+            rotaters[index].transform.rotation = subRingTransforms[index].transform.rotation;
             foreach (Transform child in rotaters[index])
             {
                 Destroy(child.gameObject);
