@@ -3,6 +3,7 @@
 public class RotateDoor : Door {
     private float tarRot;
     private float curRot;
+    public Transform realDoor;
     // Use this for initialization
     public override void OpenDoor(PlayerController player)
     {
@@ -19,7 +20,7 @@ public class RotateDoor : Door {
     {
         if (Mathf.Abs(curRot - tarRot) > 5f)
         {
-            transform.Rotate(0f, 0f, Mathf.Sign(tarRot - curRot) * Time.deltaTime * 30f);
+            realDoor.transform.Rotate(0f, 0f, Mathf.Sign(tarRot - curRot) * Time.deltaTime * 30f);
             curRot += Mathf.Sign(tarRot - curRot) * Time.deltaTime * 30f;
         }
     }
