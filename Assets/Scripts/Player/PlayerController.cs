@@ -152,10 +152,20 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if(anim.GetCurrentAnimatorStateInfo(0).IsName("SwimSubmerged") || anim.GetCurrentAnimatorStateInfo(0).IsName("TreadSubmerged"))
+        if (RingMenu.isPaused)
+        {
+            anim.speed = 0f;
+            return;
+        }
+        else
+        {
+            anim.speed = 1f;
+        }
+
+        if (anim.GetCurrentAnimatorStateInfo(0).IsName("SwimSubmerged") || anim.GetCurrentAnimatorStateInfo(0).IsName("TreadSubmerged") || anim.GetCurrentAnimatorStateInfo(0).IsName("UnderwaterPick"))
         {
             curBreathTime -= Time.deltaTime;
-            if(curBreathTime < - damageTime / playerStats.maxHealth)
+            if (curBreathTime < -damageTime / playerStats.maxHealth)
             {
                 curBreathTime = 0f;
                 playerStats.Health -= 1;
@@ -176,16 +186,7 @@ public class PlayerController : MonoBehaviour
             breathBackground.gameObject.SetActive(false);
             breathBar.gameObject.SetActive(false);
         }
-        if (RingMenu.isPaused)
-        {
-            anim.speed = 0f;
-            return;
-        }
-        else
-        {
-            anim.speed = 1f;
-        }
-        
+
         if (!locked)  // Lock when pull and push
         {
             UpdateAnimator();

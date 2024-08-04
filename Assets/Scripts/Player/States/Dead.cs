@@ -20,6 +20,7 @@ public class Dead : StateBase<PlayerController>
         //player.Anim.enabled = false;
         //player.EnableRagdoll();
         timeCounter = Time.time;
+        if(!player.Anim.GetCurrentAnimatorStateInfo(0).IsName("SwimSubmerged") && !player.Anim.GetCurrentAnimatorStateInfo(0).IsName("TreadSubmerged"))
         foreach (Rigidbody rb in player.ragRigidBodies)
         {
             rb.velocity = player.Velocity;
@@ -34,7 +35,7 @@ public class Dead : StateBase<PlayerController>
 
     public override void Update(PlayerController player)
     {
-        if (Time.time - timeCounter >= 0.15f && !ragged)
+        if (Time.time - timeCounter >= 7f && !ragged)
         {
             ragged = true;
             player.Anim.enabled = false;
@@ -46,7 +47,7 @@ public class Dead : StateBase<PlayerController>
             }
         }
 
-        if (Time.time - timeCounter >= 5f)
+        if (Time.time - timeCounter >= 7f)
         {
             SceneManager.LoadScene("DevArea");
         }
