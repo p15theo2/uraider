@@ -1,75 +1,60 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
+public class ItemInfo
+{
+    public InventoryItem item;
+    public int count;
+
+    public ItemInfo(InventoryItem pItem, int pCount) 
+    {
+        item = pItem;
+        count = pCount;
+    }
+};
 
 public class PlayerInventory : MonoBehaviour
 {
     public const int maxItems = 14;
-    public int[] itemCount = new int[3];
-    private InventoryItem[] menuItems;
     private bool activeGUI = false;
 
     private GameObject itemsUI;
-    private InventoryItem[,] items = new InventoryItem[maxItems,3];
+    private List<ItemInfo>[] items= new List<ItemInfo>[3];
+    public int[,] itemNum = new int[maxItems,2];
 
     private void Start()
     {
-        for (int i = 0; i < maxItems; i++)
+        for (int i = 0; i < 3; i++)
         {
-            items[i, 0] = null;
-            items[i, 1] = null;
-            items[i, 2] = null;
+            items[i] = new List<ItemInfo>();
         }
-        itemCount[0] = 0;
-        itemCount[1] = 0;
-        itemCount[2] = 0;
-
-        menuItems = gameObject.GetComponents<InventoryItem>();
+        InventoryItem[] menuItems = gameObject.GetComponents<InventoryItem>();
         for(int i = 0; i< menuItems.Length; i++)
         {
-            items[i, 2] = menuItems[i];
+            items[2].Add(new ItemInfo(menuItems[i], 1));
         }
-        itemCount[2] = menuItems.Length;
-    }
-
-    private void Update()
-    {
-        
     }
 
     public void AddItem(InventoryItem item)
     {
-        for (int i = 0; i < items.Length; i++)
+        int index = item.type;
+        for (int i = 0; i < items[index].Count; i++)
         {
-            if (items[i, item.type] == null)
+            if (items[index][i].item.itemName == item.itemName)
             {
-                items[i, item.type] = item;
-                itemCount[item.type]++;
+                items[index][i].count++;
                 return;
             }
         }
+        items[index].Add(new ItemInfo(item, 1));
     }
 
-    public void RemoveItem(InventoryItem item)
+    public void RemoveItem(int index, int type)
     {
-        for (int i = 0; i < items.Length; i++)
-        {
-            if (items[i, item.type] == item)
-            {
-                items[i, item.type] = null;
-                itemCount[item.type]--;
-                return;
-            }
-        }
+        items[type].RemoveAt(index);
     }
 
-    public void RemoveItem(int i, int type)
-    {
-        items[i, type] = null;
-    }
-
-    public InventoryItem[,] Items
+    public List<ItemInfo>[] Items
     {
         get { return items; }
     }

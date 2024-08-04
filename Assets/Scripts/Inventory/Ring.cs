@@ -27,8 +27,8 @@ public class Ring : MonoBehaviour {
             float radius = 0;
             switch (type)
             {
-                case 1: radius = Mathf.Max(0.1f, (1 - tim * 3.5f)) * 2f; break;
-                case 2: radius = Mathf.Min(2f, tim * 3.5f); break ;
+                case 1: radius = Mathf.Max(0.1f, (1 - tim * 2.8f)) * 2f; break;
+                case 2: radius = Mathf.Min(2f, tim * 2.8f); break ;
                 default: break;
             }
             for (int i = 0; i < childCount; i++)
@@ -57,7 +57,8 @@ public class Ring : MonoBehaviour {
     public void Move(int pDirection, int pType)
     {
         direction = pDirection;
-        tarPos += pDirection * 4f;
+        tarPos += pDirection * 5f;
+        tarRot = 0;
         type = pType;
         tim = 0f;
         moving = true;

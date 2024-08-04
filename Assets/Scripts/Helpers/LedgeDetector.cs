@@ -89,7 +89,7 @@ public class LedgeDetector
         RaycastHit vHit;
         Vector3 vStart = start + (Vector3.up * 2f) + (dir * depth);
         Debug.DrawRay(vStart, Vector3.down * (maxHeight - 0.01f), Color.red, 1f);
-        if (Physics.Raycast(vStart, Vector3.down, out vHit, (maxHeight - 0.01f)))
+        if (Physics.Raycast(vStart, Vector3.down, out vHit, (maxHeight - 0.01f),~0,QueryTriggerInteraction.Ignore))
         {
             RaycastHit hHit;
             start = new Vector3(start.x, vHit.point.y - 0.01f, start.z);
