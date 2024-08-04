@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerStats))]
@@ -20,6 +21,7 @@ public class PlayerController : MonoBehaviour
     [Header("UnderwaterDamageTimes")]
     public float breathTime = 60;
     public float damageTime = 10;
+    public Image breathBar;
     [Header("Physics")]
     public float gravity = 9.81f;
     public float deathVelocity = 12f;
@@ -150,6 +152,27 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if(anim.GetCurrentAnimatorStateInfo(0).IsName("SwimSubmerged") || anim.GetCurrentAnimatorStateInfo(0).IsName("TreadSubmerged"))
+        {
+            curBreathTime -= Time.deltaTime;
+            if(curBreathTime < - damageTime / playerStats.maxHealth)
+            {
+                curBreathTime = 0f;
+                playerStats.Health -= 1;
+            }
+            breathBar.gameObject.SetActive(true);
+            breathBar.rectTransform.sizeDelta = new Vector2(20, 150 * curBreathTime / breathTime);
+        }
+        else if (curBreathTime < breathTime)
+        {
+            curBreathTime += Time.deltaTime;
+            breathBar.gameObject.SetActive(true);
+            breathBar.rectTransform.sizeDelta = new Vector2(20, 150 * curBreathTime / breathTime);
+        }
+        else
+        {
+            breathBar.gameObject.SetActive(false);
+        }
         if (RingMenu.isPaused)
         {
             anim.speed = 0f;
