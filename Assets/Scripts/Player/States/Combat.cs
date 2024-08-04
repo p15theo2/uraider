@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Combat : StateBase<PlayerController>
 {
@@ -14,7 +12,6 @@ public class Combat : StateBase<PlayerController>
         player.Anim.applyRootMotion = false;
         player.ForceWaistRotation = true;
         player.Anim.SetBool("isCombat", true);
-        player.Stats.ShowCanvas();
         player.pistolLHand.SetActive(true);
         player.pistolRHand.SetActive(true);
         player.pistolLLeg.SetActive(false);
@@ -39,7 +36,6 @@ public class Combat : StateBase<PlayerController>
             player.Anim.SetBool("isCombat", false);
             player.Anim.SetBool("isTargetting", false);
             player.Anim.SetBool("isFiring", false);
-            player.Stats.HideCanvas();
             player.pistolLHand.SetActive(false);
             player.pistolRHand.SetActive(false);
             player.pistolLLeg.SetActive(true);

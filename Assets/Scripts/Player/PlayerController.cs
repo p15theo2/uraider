@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
     public float breathTime = 60;
     public float damageTime = 10;
     public Image breathBar;
+    public Image breathBackground;
     [Header("Physics")]
     public float gravity = 9.81f;
     public float deathVelocity = 12f;
@@ -107,7 +108,6 @@ public class PlayerController : MonoBehaviour
         pistols[0] = pistolLHand.GetComponent<Weapon>();
         pistols[1] = pistolRHand.GetComponent<Weapon>();
         playerStats = GetComponent<PlayerStats>();
-        playerStats.HideCanvas();
         velocity = Vector3.zero;
         stateMachine = new StateMachine<PlayerController>(this);
         SetUpStateMachine();
@@ -161,16 +161,19 @@ public class PlayerController : MonoBehaviour
                 playerStats.Health -= 1;
             }
             breathBar.gameObject.SetActive(true);
-            breathBar.rectTransform.sizeDelta = new Vector2(20, 150 * curBreathTime / breathTime);
+            breathBackground.gameObject.SetActive(true);
+            breathBar.rectTransform.sizeDelta = new Vector2(120 * curBreathTime / breathTime, 10);
         }
         else if (curBreathTime < breathTime)
         {
             curBreathTime += Time.deltaTime;
             breathBar.gameObject.SetActive(true);
-            breathBar.rectTransform.sizeDelta = new Vector2(20, 150 * curBreathTime / breathTime);
+            breathBackground.gameObject.SetActive(true);
+            breathBar.rectTransform.sizeDelta = new Vector2(120 * curBreathTime / breathTime, 10);
         }
         else
         {
+            breathBackground.gameObject.SetActive(false);
             breathBar.gameObject.SetActive(false);
         }
         if (RingMenu.isPaused)

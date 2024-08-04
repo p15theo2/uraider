@@ -9,13 +9,9 @@ public class HurtZone : MonoBehaviour
 
     private PlayerStats stats;
 
-    private void OnTriggerEnter(Collider other)
+    void Start()
     {
-        if (other.CompareTag("Player"))
-        {
-            stats = other.gameObject.GetComponent<PlayerStats>();
-            stats.ShowCanvas();
-        }
+        stats = GameObject.FindObjectOfType<PlayerStats>();
     }
 
     private void OnTriggerStay(Collider other)
@@ -23,14 +19,6 @@ public class HurtZone : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             stats.Health -= amount;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            stats.HideCanvas();
         }
     }
 }

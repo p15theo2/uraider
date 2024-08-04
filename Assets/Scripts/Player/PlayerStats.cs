@@ -20,16 +20,6 @@ public class PlayerStats : MonoBehaviour
         player = GetComponent<PlayerController>();
     }
 
-    public void ShowCanvas()
-    {
-        canvas.enabled = true;
-    }
-
-    public void HideCanvas()
-    {
-        canvas.enabled = false;
-    }
-
     public int Health
     {
         get { return health; }
