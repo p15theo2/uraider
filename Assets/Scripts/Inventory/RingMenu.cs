@@ -44,8 +44,6 @@ public class RingMenu : MonoBehaviour
             {
                 if (isActive)
                 {
-                    curItemIndex = 0;
-                    curIndex = 1;
                     DisableMenu();
                 }
             }
@@ -106,6 +104,8 @@ public class RingMenu : MonoBehaviour
 
     private void HandleUse()
     {
+        curItemIndex = 0;
+        curIndex = 1;
         isPaused = false;
         menu.SetActive(false);
     }
@@ -129,6 +129,8 @@ public class RingMenu : MonoBehaviour
     {
         if (rotaters[curIndex].GetComponent<Ring>().moving)
             return;
+        curItemIndex = 0;
+        curIndex = 1;
         menu.SetActive(false);
     }
 
