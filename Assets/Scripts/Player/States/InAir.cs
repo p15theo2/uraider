@@ -18,12 +18,12 @@ public class InAir : StateBase<PlayerController>
     {
         haltUpdate = false;
 
-        if (player.Velocity.y < -10f && player.Grounded)
-            player.Stats.Health += (int)player.Velocity.y;
+        player.isBackJump = false;
 
         player.Anim.SetBool("isJumping", false);
         player.Anim.SetBool("isGrabbing", false);
         player.Anim.SetBool("isDive", false);
+        player.Anim.SetBool("BackJump", false);
     }
 
     public override void Update(PlayerController player)
@@ -31,7 +31,7 @@ public class InAir : StateBase<PlayerController>
         if (haltUpdate)
             return;
 
-        if (player.Velocity.y < -player.deathVelocity && !screamed)
+        if (!screamed)
         {
             player.SFX.PlayScreamSound();
             screamed = true;
@@ -45,15 +45,24 @@ public class InAir : StateBase<PlayerController>
         float targetSpeed = UMath.GetHorizontalMag(player.RawTargetVector() * player.runSpeed);
         player.Anim.SetFloat("TargetSpeed", targetSpeed);
 
+        if (player.isBackJump)
+        {
+            player.gameObject.transform.Translate(0f, 0f, -4f * Time.deltaTime);
+        }
+
         if (player.Grounded)
         {
-            if (player.Velocity.y < -player.deathVelocity)
+            if (player.Velocity.y < -player.damageVelocity)
             {
-                player.GetComponent<AudioSource>().Stop();
-                player.SFX.PlayHitGroundSound();
-                player.StateMachine.GoToState<Dead>();
+                if(player.Stats.Health < -((player.Velocity.y + player.damageVelocity) * player.damageRate))
+                {
+                    player.Anim.SetBool("isDead", true);
+                    player.Stats.Health += (int)((player.Velocity.y + player.damageVelocity) * player.damageRate);
+                    return;
+                }
+                player.Stats.Health += (int)((player.Velocity.y + player.damageVelocity) * player.damageRate);
             }
-            else if (UMath.GroundAngle(player.GroundHit.normal) <= player.charControl.slopeLimit)
+            if (UMath.GroundAngle(player.GroundHit.normal) <= player.charControl.slopeLimit)
             {
                 // Stops player moving forward on landing
                 if (Input.GetAxisRaw(player.playerInput.verticalAxis) < 0.1f && Input.GetAxisRaw(player.playerInput.horizontalAxis) < 0.1f)

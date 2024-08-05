@@ -69,7 +69,7 @@ public class CameraController : MonoBehaviour
         xRot = Mathf.Clamp(xRot, yMin, yMax);
 
         if (LAUTurning && camState == CameraState.Grounded 
-            && Mathf.Abs(x) < 0.3f
+            && Mathf.Abs(x) < 0.3f && target.GetComponent<PlayerController>()
             && target.GetComponent<PlayerController>().Anim.GetCurrentAnimatorStateInfo(0).IsName("RunWalk"))
             DoExtraRotation();
 

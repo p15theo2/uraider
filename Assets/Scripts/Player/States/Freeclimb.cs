@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEditorInternal;
 using UnityEngine;
 
 class Freeclimb : StateBase<PlayerController>
@@ -37,6 +38,19 @@ class Freeclimb : StateBase<PlayerController>
     public override void Update(PlayerController player)
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
+
+        if (Input.GetKeyUp(player.GetComponent<PlayerInput>().crouch) && animState.IsName("FreeClimb_Idle"))
+        {
+            player.Anim.SetBool("isFreeclimb", false);
+            player.StateMachine.GoToState<InAir>();
+        }
+
+        if (Input.GetKeyUp(player.GetComponent<PlayerInput>().jump) && animState.IsName("FreeClimb_Idle"))
+        {
+            player.isBackJump = true;
+            player.Anim.SetBool("BackJump", true);
+            player.StateMachine.GoToState<InAir>();
+        }
 
         float horizontal = Input.GetAxis(player.playerInput.horizontalAxis);
         float vertical = Input.GetAxis(player.playerInput.verticalAxis);

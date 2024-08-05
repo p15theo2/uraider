@@ -25,7 +25,9 @@ public class PlayerController : MonoBehaviour
     public Image breathBackground;
     [Header("Physics")]
     public float gravity = 9.81f;
-    public float deathVelocity = 12f;
+    public float damageVelocity = 5f;
+    public float damageRate = 12f;
+    public float terminalVelocity = 12f;
     [Header("Jump Speeds")]
     public float jumpYVel = 5f;
     public float jumpZBoost = 0.8f;
@@ -92,7 +94,10 @@ public class PlayerController : MonoBehaviour
     private bool isBack = false;
     private bool rotRock = false;
     private bool animationTriggered = false;
-    
+
+    [HideInInspector]
+    public bool isBackJump = false;
+
     private void Awake()
     {
         DisableRagdoll();
@@ -233,12 +238,13 @@ public class PlayerController : MonoBehaviour
         else if (Input.GetKeyDown(playerInput.action) && anim.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
             RaycastHit hitout;
-            if (Physics.Raycast(transform.position, transform.forward, out hitout, 1f))
+            if (Physics.Raycast(transform.position + transform.forward * 0.1f + transform.up * 0.1f, transform.forward, out hitout, 1f))
             {
                 if (hitout.collider.gameObject.CompareTag("Pushable"))
                 {
                     pushObject = hitout.collider.gameObject;
                     pushObject.transform.parent = transform;
+                    Input.ResetInputAxes();
                     locked = true;
                 }
             }
@@ -666,7 +672,8 @@ public class PlayerController : MonoBehaviour
 
     public void ApplyGravity(float amount)
     {
-        velocity.y -= amount * Time.deltaTime;
+        if(velocity.y > -terminalVelocity)
+            velocity.y -= amount * Time.deltaTime;
     }
 
     public void FireRightPistol()

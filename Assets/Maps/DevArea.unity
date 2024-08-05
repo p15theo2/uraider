@@ -20,11 +20,11 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.7877358, g: 0.83850735, b: 1, a: 1}
+  m_AmbientSkyColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
   m_AmbientEquatorColor: {r: 0.12062066, g: 0.14869784, b: 0.16911763, a: 1}
   m_AmbientGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 4
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
@@ -85990,10 +85990,10 @@ GameObject:
   - component: {fileID: 380236798}
   m_Layer: 0
   m_Name: ROOM_28_OBJ_39
-  m_TagString: Untagged
+  m_TagString: Pushable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &380236795
 Transform:
@@ -86063,7 +86063,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4304520, guid: ea2f4f9364fe00b48a423b8c50990ac3, type: 3}
@@ -138946,6 +138946,7 @@ GameObject:
   - component: {fileID: 627202156}
   - component: {fileID: 627202155}
   - component: {fileID: 627202154}
+  - component: {fileID: 627202158}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Pushable
@@ -139020,6 +139021,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &627202158
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 627202153}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &628113080
 GameObject:
   m_ObjectHideFlags: 0
@@ -295988,7 +296004,9 @@ MonoBehaviour:
   breathBar: {fileID: 766168096}
   breathBackground: {fileID: 1160548841}
   gravity: 9.8
-  deathVelocity: 12
+  damageVelocity: 5
+  damageRate: 12
+  terminalVelocity: 30
   jumpYVel: 4.8
   jumpZBoost: 0.4
   footYOffset: 0.14
@@ -384649,7 +384667,9 @@ MonoBehaviour:
   breathBar: {fileID: 0}
   breathBackground: {fileID: 0}
   gravity: 9.8
-  deathVelocity: 12
+  damageVelocity: 5
+  damageRate: 12
+  terminalVelocity: 12
   jumpYVel: 4.8
   jumpZBoost: 0.4
   footYOffset: 0.14
@@ -441596,7 +441616,9 @@ MonoBehaviour:
   breathBar: {fileID: 0}
   breathBackground: {fileID: 0}
   gravity: 9.8
-  deathVelocity: 12
+  damageVelocity: 5
+  damageRate: 12
+  terminalVelocity: 12
   jumpYVel: 4.8
   jumpZBoost: 0.4
   footYOffset: 0.14
