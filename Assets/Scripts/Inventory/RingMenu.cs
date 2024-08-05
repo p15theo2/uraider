@@ -71,6 +71,7 @@ public class RingMenu : MonoBehaviour
         float vAxis = Input.GetAxisRaw(input.verticalAxis);
         if (Input.GetKeyDown(input.action) && isActive)
         {
+            if (inventory.Items[curIndex][curItemIndex].item.GetType().FullName == "CombineItem") return;
             if (inventory.Items[curIndex][curItemIndex].item.inventoryModel.GetComponent<Animator>())
                 inventory.Items[curIndex][curItemIndex].item.inventoryModel.GetComponent<Animator>().SetTrigger("Confirm");
             isActive = false;

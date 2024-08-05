@@ -39,13 +39,13 @@ class Freeclimb : StateBase<PlayerController>
     {
         AnimatorStateInfo animState = player.Anim.GetCurrentAnimatorStateInfo(0);
 
-        if (Input.GetKeyUp(player.GetComponent<PlayerInput>().crouch) && animState.IsName("FreeClimb_Idle"))
+        if (Input.GetKeyUp(player.GetComponent<PlayerInput>().crouch) && (animState.IsName("FreeClimb_Idle") || animState.IsName("Slantclimb_Idle") || animState.IsName("Slantclimb_Idle_Right")))
         {
             player.Anim.SetBool("isFreeclimb", false);
             player.StateMachine.GoToState<InAir>();
         }
 
-        if (Input.GetKeyUp(player.GetComponent<PlayerInput>().jump) && animState.IsName("FreeClimb_Idle"))
+        if (Input.GetKeyUp(player.GetComponent<PlayerInput>().jump) && (animState.IsName("FreeClimb_Idle") || animState.IsName("Slantclimb_Idle") || animState.IsName("Slantclimb_Idle_Right")))
         {
             player.isBackJump = true;
             player.Anim.SetBool("BackJump", true);
