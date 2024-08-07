@@ -11,6 +11,14 @@ public class Ring : MonoBehaviour {
     private float tarRot = 0;
     private float curPos = 0;
     private float tarPos = 0;
+
+    public void Init()
+    {
+        curRot = 0;
+        curPos = 0;
+        tarRot = 0;
+        tarPos = 0;
+    }
     void Update()
     {
         tim += Time.deltaTime;
