@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,12 +15,23 @@ public class RingMenu : MonoBehaviour
     public Transform[] subRingTransforms;
     public Text itemName;
     public Text itemCount;
+    public Text combineable;
+    public Text targetText;
     
     private float angleChange = 90f;
 
     private PlayerInput input;
     private bool isActive;
     private bool isDoorOpen;
+    private bool isCombining;
+    private int curCombineIndex;
+
+    private string combineItemName;
+
+    public Transform[] combinePoints;
+    public GameObject combine;
+    public int combineItemType;
+    public int combineItemIndex;
 
     [HideInInspector]
     public Door targetDoor;
@@ -69,9 +80,59 @@ public class RingMenu : MonoBehaviour
         if(!isPaused) return;
         float hAxis = Input.GetAxisRaw(input.horizontalAxis);
         float vAxis = Input.GetAxisRaw(input.verticalAxis);
-        if (Input.GetKeyDown(input.action) && isActive)
+        if(Input.GetKeyDown(input.crouch) && isActive && inventory.Items[curIndex][curItemIndex].item.GetType().FullName == "CombineItem")
         {
-            if (inventory.Items[curIndex][curItemIndex].item.GetType().FullName == "CombineItem") return;
+            combineItemName = inventory.Items[curIndex][curItemIndex].item.itemName;
+            if (!IsPossibleCombine())
+            {
+                combineable.text = "There is no item to combine.";
+                combineItemName = "";
+                return;
+            }
+            isCombining = true;
+            curCombineIndex = 0;
+            while (inventory.CombineItems()[curCombineIndex].item.itemName == combineItemName)
+            {
+                curCombineIndex += 1;
+            }
+            UpdateUI();
+        }
+        if (isCombining)
+        {
+            if(Mathf.Abs(hAxis) > 0.3f){
+                curCombineIndex += Sign(hAxis);
+                curCombineIndex %= inventory.CombineItems().Count;
+                while (inventory.CombineItems()[curCombineIndex].item.itemName == combineItemName)
+                {
+                    curCombineIndex += Sign(hAxis);
+                    curCombineIndex %= inventory.CombineItems().Count;
+                    if (curCombineIndex < 0) curCombineIndex += inventory.CombineItems().Count;
+                }
+                UpdateUI();
+            }
+            if (Input.GetKey(input.action))
+            {
+                if(inventory.CombineItems()[curCombineIndex].item.itemName == ((CombineItem)(inventory.Items[curIndex][curItemIndex].item)).combineName)
+                {
+                    InventoryItem addItem = ((CombineItem)(inventory.Items[curIndex][curItemIndex].item)).result.GetComponent<InventoryItem>();
+                    string name = inventory.CombineItems()[curCombineIndex].item.itemName;
+                    inventory.RemoveItem(curItemIndex, curIndex);
+                    inventory.RemoveItem(name);
+                    isCombining = false;
+                    isActive = true;
+                    curItemIndex = 0;
+                    curCombineIndex = 0;
+                    inventory.AddFirstItem(addItem);
+                    RefreshMenu();
+                    UpdateUI();
+                    return;
+                }
+            }
+        }
+        if (Input.GetKeyDown(input.action) && isActive && !isCombining)
+        {
+            if (inventory.Items[curIndex][curItemIndex].item.GetType().FullName == "CombineItem")
+                return;
             if (inventory.Items[curIndex][curItemIndex].item.inventoryModel.GetComponent<Animator>())
                 inventory.Items[curIndex][curItemIndex].item.inventoryModel.GetComponent<Animator>().SetTrigger("Confirm");
             isActive = false;
@@ -95,7 +156,7 @@ public class RingMenu : MonoBehaviour
             }
             Invoke("HandleUse", 3f);
         }
-        if (!rotaters[curIndex].GetComponent<Ring>().moving && isActive)
+        if (!rotaters[curIndex].GetComponent<Ring>().moving && isActive && !isCombining)
         {
             if (Mathf.Abs(hAxis) > 0.3f && inventory.Items[curIndex].Count > 0)
             {
@@ -125,6 +186,15 @@ public class RingMenu : MonoBehaviour
                 UpdateUI();
             }
         }
+    }
+
+    private bool IsPossibleCombine()
+    {
+        foreach(ItemInfo item in inventory.CombineItems())
+        {
+            if(item.item.name != combineItemName) return true;
+        }
+        return false;
     }
 
     private void HandleUse()
@@ -168,14 +238,25 @@ public class RingMenu : MonoBehaviour
         curIndex = 1;
         isDoorOpen = false;
         menu.SetActive(false);
+        combineItemName = null;
     }
 
     private void UpdateUI()
     {
         if (inventory.Items[curIndex].Count == 0)
         {
-            itemName.text = itemCount.text = "";
+            itemName.text = itemCount.text = combineable.text = targetText.text = "";
             return;
+        }
+        if (inventory.Items[curIndex][curItemIndex].item.GetType().FullName == "CombineItem") combineable.text = isCombining? "Combine" : "Combine With";
+        else combineable.text = "";
+        if (isCombining)
+        {
+            targetText.text = inventory.CombineItems()[curCombineIndex].item.itemName;
+        }
+        else
+        {
+            targetText.text = "";
         }
         itemName.text = inventory.Items[curIndex][curItemIndex].item.itemName;
         itemCount.text = inventory.Items[curIndex][curItemIndex].count == 1? "" : inventory.Items[curIndex][curItemIndex].count.ToString();

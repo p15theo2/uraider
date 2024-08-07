@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ItemInfo
@@ -35,6 +36,20 @@ public class PlayerInventory : MonoBehaviour
         }
     }
 
+    public void AddFirstItem(InventoryItem item)
+    {
+        int index = item.type;
+        for (int i = 0; i < items[index].Count; i++)
+        {
+            if (items[index][i].item.itemName == item.itemName)
+            {
+                items[index][i].count++;
+                return;
+            }
+        }
+        items[index].Insert(0,new ItemInfo(item, 1));
+    }
+
     public void AddItem(InventoryItem item)
     {
         int index = item.type;
@@ -54,8 +69,35 @@ public class PlayerInventory : MonoBehaviour
         items[type].RemoveAt(index);
     }
 
+    public void RemoveItem(string name)
+    {
+        ItemInfo found = null;
+        foreach(ItemInfo item in items[0])
+        {
+            if(item.item.itemName == name)
+            {
+                if(item.count > 1) item.count--;
+                else found = item;
+            }
+        }
+        items[0].Remove(found);
+    }
+
     public List<ItemInfo>[] Items
     {
         get { return items; }
+    }
+
+    public List<ItemInfo> CombineItems()
+    {
+        List<ItemInfo> combineItems = new List<ItemInfo>();
+        foreach(ItemInfo item in items[0])
+        {
+            if(item.item.GetType() == typeof(CombineItem))
+            {
+                combineItems.Add(item);
+            }
+        }
+        return combineItems;
     }
 }

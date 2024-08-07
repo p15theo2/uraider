@@ -24,7 +24,8 @@ public class PickUICam : MonoBehaviour {
 		item = Instantiate(prefab,objectPoint);
 		item.transform.localPosition = Vector3.zero;
 		item.layer = 5;
-		item.transform.GetChild(0).gameObject.layer = 5;
+		if(item.transform.childCount != 0)
+			item.transform.GetChild(0).gameObject.layer = 5;
         Destroy(item, 3f);
     }
 }
