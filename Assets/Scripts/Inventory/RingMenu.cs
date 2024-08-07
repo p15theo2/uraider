@@ -62,6 +62,7 @@ public class RingMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(input.inventory))
         {
+            if(isCombining) return;
             isPaused = !isPaused;
 
             if (isPaused)
